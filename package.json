@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-minipic",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -41,6 +41,9 @@
 	"files": [
 		"/dist"
 	],
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/"
+	},
 	"keywords": [
 		"vite",
 		"webpack",
