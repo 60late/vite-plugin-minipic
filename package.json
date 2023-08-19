@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-minipic",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
 		"dev": "yarn build --watch --ignore-watch examples",
 		"build": "tsup src/index.ts --dts --format cjs,esm",
 		"release": "bumpp",
-		"publish": "cp package.json ./dist && npm publish",
+		"publish": "cp package.json ./dist && cd ./dist && npm publish",
 		"vue3": "cd examples/vue3-vite && yarn build"
 	},
 	"devDependencies": {
@@ -41,5 +41,15 @@
 	},
 	"files": [
 		"/dist"
+	],
+	"keywords": [
+		"vite",
+		"webpack",
+		"rollup",
+		"esbuild",
+		"sharp",
+		"image",
+		"imagemin",
+		"minipic"
 	]
 }
