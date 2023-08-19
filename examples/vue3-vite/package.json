@@ -1,0 +1,43 @@
+{
+	"name": "loan",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
+		"format": "prettier --write \"./**/*.{html,vue,ts,js,json,md}\"",
+		"lint:style": "stylelint \"./**/*.{css,less,vue,html}\" --fix",
+		"prepare": "husky install"
+	},
+	"dependencies": {
+		"sharp": "^0.32.4",
+		"vue": "^3.3.4",
+		"vue-router": "^4.0.13"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^4.2.3",
+		"eslint": "^8.46.0",
+		"eslint-config-prettier": "^8.9.0",
+		"eslint-plugin-prettier": "^5.0.0",
+		"eslint-plugin-vue": "^9.16.1",
+		"husky": "^8.0.3",
+		"less": "^4.1.3",
+		"postcss": "^8.4.27",
+		"postcss-html": "^1.5.0",
+		"postcss-less": "^6.0.0",
+		"postcss-pxtorem": "^6.0.0",
+		"prettier": "^3.0.0",
+		"rollup-plugin-visualizer": "^5.9.2",
+		"stylelint": "^15.10.2",
+		"stylelint-config-recommended-less": "^1.0.4",
+		"stylelint-config-standard": "^34.0.0",
+		"stylelint-config-standard-vue": "^1.0.0",
+		"stylelint-less": "^1.0.8",
+		"stylelint-order": "^6.0.3",
+		"vite": "^4.4.9",
+		"vite-plugin-minipic": "link:../../"
+	}
+}
