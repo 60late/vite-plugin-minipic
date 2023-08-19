@@ -2,9 +2,14 @@ import type { PluginOption } from 'vite'
 import { createFilter } from '@rollup/pluginutils'
 import { extname } from 'path'
 import sharp from 'sharp'
-import { defaultSharpOptions } from './core/sharpOptions'
+import { defaultSharpOptions } from './sharpOptions'
 import chalk from 'chalk'
 import { partial } from 'filesize'
+import ora from 'ora'
+
+let resolvedConfig
+let outputPath
+let publicDir
 
 const imgMap = new Map([
 	['jpeg', 'jpeg'],
@@ -13,72 +18,67 @@ const imgMap = new Map([
 	['avif', 'avif'],
 	['webp', 'webp']
 ])
+
+const recordsMap = new Map<string, { newSize: number; oldSize: number; compressRatio: string }>()
+
 const computeSize = partial({ base: 2, standard: 'jedec' })
 
-// 根据后缀名筛选出图片
 const imgFilter = (bundle) => {
 	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg)$/i
 	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundle)
 	return res
 }
 
-// 生成日志
-const generateLog = (resolvedConfig, recordsMap) => {
-	let totalOldSize = 0
-	let totalNewSize = 0
-	recordsMap.forEach((record, fileName) => {
-		const { oldSize, newSize, compressRatio } = record
-		// logData.push({
-		// 	fileName: fileName,
-		// 	oldSize: computeSize(oldSize),
-		// 	newSize: computeSize(newSize),
-		// 	compressRatio: `${compressRatio}%↓`
-		// })
-		totalOldSize += oldSize
-		totalNewSize += newSize
-		logger(
-			chalk.white(fileName),
-			chalk.red(computeSize(oldSize)),
-			'→',
-			chalk.green(computeSize(newSize)),
-			`${chalk.yellow(`${compressRatio}%`)}↓`
-		)
-	})
-	const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
-
-	logger(
-		chalk.green('✨ Compress done! \n'),
-		'OriginSize:',
-		chalk.red(computeSize(totalOldSize)),
-		'→ NowSize:',
-		chalk.green(computeSize(totalNewSize)),
-		'Total compress radio:',
-		`${chalk.yellow(`${totalCompressRatio}%`)}↓`
-	)
-}
-
 const logger = (...args) => {
 	console.log(...args)
 }
 
-const recordsMap = new Map<string, { newSize: number; oldSize: number; compressRatio: string }>()
+const generateLog = (resolvedConfig, recordsMap) => {
+	logger(chalk.green('\n------------------vite-plugin-minipic------------------'))
+	let totalOldSize = 0
+	let totalNewSize = 0
+	recordsMap.forEach((record, fileName) => {
+		const { oldSize, newSize, compressRatio } = record
+		totalOldSize += oldSize
+		totalNewSize += newSize
+		logger(
+			chalk.blue(fileName),
+			chalk.red(computeSize(oldSize)),
+			'→',
+			chalk.magentaBright(computeSize(newSize)),
+			`${chalk.green(`${compressRatio}%↓`)}`
+		)
+	})
 
-// 获取压缩后的文件
+	const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
+
+	logger(
+		chalk.green('------------------vite-plugin-minipic------------------'),
+		chalk.green('\n[vite-plugin-minipic]: ✔ Compress done!'),
+		chalk.blue('OriginSize:'),
+		chalk.red(computeSize(totalOldSize)),
+		chalk.blue('→ NowSize:'),
+		chalk.magentaBright(computeSize(totalNewSize)),
+		chalk.blue('TotalRatio:'),
+		`${chalk.green(`${totalCompressRatio}%↓ \n`)}`
+	)
+}
+
 const compressFile = async (filePath: string, source: Buffer) => {
 	const ext: string = extname(filePath).slice(1)
-	const compressOption = defaultSharpOptions[ext]
+	const compressOption = resolvedConfig[ext]
 	// eslint-disable-next-line no-unexpected-multiline
 	const content: Buffer = await sharp(source)[imgMap.get(ext)](compressOption).toBuffer()
 	const oldSize = source.byteLength
 	const newSize = content.byteLength
 
-	// 有时候PNG压缩时打包出来的体积会更大，如果体积变大了则返回原来的图片
+	// Sometimes .png images will be larger after sharp.js processed,so only return compressed files.
 	if (newSize < oldSize) {
-		const compressRatio = ((oldSize - newSize) / oldSize) * 100
+		const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
 		recordsMap.set(filePath, {
 			newSize,
 			oldSize,
-			compressRatio: compressRatio.toFixed(2)
+			compressRatio
 		})
 		return content
 	} else {
@@ -86,52 +86,35 @@ const compressFile = async (filePath: string, source: Buffer) => {
 	}
 }
 
-const defaultConfig = {}
-
 export default function vitePluginMinipic(options): PluginOption {
-	let resolvedConfig
-	let outputPath
-	let publicDir
-
 	return {
-		// 插件名称
 		name: 'vite-plugin-minipic',
-		// pre 会较于 post 先执行
-		enforce: 'pre', // post
-		// 指明它们仅在 'build' 或 'serve' 模式时调用
-		apply: 'build', // apply 亦可以是一个函数
-		configResolved(config) {
-			// TODO: 配置融合
-			resolvedConfig = Object.assign({}, config, defaultConfig)
-			outputPath = resolvedConfig.build.outDir
-
-			if (typeof resolvedConfig.publicDir === 'string') {
-				publicDir = resolvedConfig.publicDir
-			}
+		enforce: 'pre',
+		apply: 'build',
+		configResolved() {
+			resolvedConfig = Object.assign({}, defaultSharpOptions, options)
 		},
 		async generateBundle(_, bundler) {
 			const imgFiles: string[] = []
-
 			Object.keys(bundler).forEach((bundle) => {
 				imgFilter(bundle) && imgFiles.push(bundle)
 			})
-
 			if (!imgFiles.length) return
 
+			const spinner = ora().start()
 			const handles = imgFiles.map(async (filePath: string) => {
 				const source = (bundler[filePath] as any).source
 				const content = await compressFile(filePath, source)
-				logger(`now compressing ${filePath}..`)
 				if (content) (bundler[filePath] as any).source = content
+				spinner.text = `${chalk.blueBright('[vite-plugin-minipic]: now compressing')} ${chalk.yellow(filePath)}`
 			})
-
 			await Promise.all(handles)
+			spinner.stop()
 		},
 		closeBundle() {
 			if (publicDir || outputPath) {
-				// TODO: closeBundle时转换Public目录下的内容
+				// TODO: compress images in /public and index.html
 			}
-
 			generateLog(resolvedConfig, recordsMap)
 		}
 	}

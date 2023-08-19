@@ -15,7 +15,7 @@
 	"scripts": {
 		"dev": "yarn build --watch --ignore-watch examples",
 		"build": "tsup src/index.ts --dts --format cjs,esm",
-		"e3": "cd examples/vue3-vite && yarn build"
+		"vue3": "cd examples/vue3-vite && yarn build"
 	},
 	"devDependencies": {
 		"@types/node": "^20.4.10",
@@ -34,6 +34,7 @@
 		"chalk": "^5.3.0",
 		"debug": "^4.3.4",
 		"filesize": "^10.0.12",
+		"ora": "^7.0.1",
 		"sharp": "^0.32.4"
 	}
 }

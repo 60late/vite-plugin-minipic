@@ -23,5 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 
-# 项目体积分析文件不上传
-stats.html
