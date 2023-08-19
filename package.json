@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-minipic",
-	"version": "0.0.1",
+	"version": "0.0.4",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -15,12 +15,14 @@
 	"scripts": {
 		"dev": "yarn build --watch --ignore-watch examples",
 		"build": "tsup src/index.ts --dts --format cjs,esm",
+		"release": "bumpp",
 		"vue3": "cd examples/vue3-vite && yarn build"
 	},
 	"devDependencies": {
 		"@types/node": "^20.4.10",
 		"@typescript-eslint/eslint-plugin": "^6.3.0",
 		"@typescript-eslint/parser": "^6.3.0",
+		"bumpp": "^9.1.1",
 		"eslint": "^8.47.0",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-prettier": "^5.0.0",
@@ -32,7 +34,6 @@
 	"dependencies": {
 		"@rollup/pluginutils": "^5.0.3",
 		"chalk": "^5.3.0",
-		"debug": "^4.3.4",
 		"filesize": "^10.0.12",
 		"ora": "^7.0.1",
 		"sharp": "^0.32.4"
