@@ -2,10 +2,11 @@ import type { PluginOption } from 'vite'
 import { createFilter } from '@rollup/pluginutils'
 import { extname } from 'path'
 import sharp from 'sharp'
-import { defaultSharpOptions } from './sharpOptions'
+import { defaultOptions } from './defaultOptions'
 import chalk from 'chalk'
 import { partial } from 'filesize'
 import ora from 'ora'
+import { merge } from 'lodash-es'
 
 let resolvedConfig
 let outputPath
@@ -92,7 +93,7 @@ export default function vitePluginMinipic(options): PluginOption {
 		enforce: 'pre',
 		apply: 'build',
 		configResolved() {
-			resolvedConfig = Object.assign({}, defaultSharpOptions, options)
+			resolvedConfig = merge(defaultOptions, options)
 		},
 		async generateBundle(_, bundler) {
 			const imgFiles: string[] = []

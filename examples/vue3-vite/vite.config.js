@@ -9,7 +9,20 @@ const __dirname = path.dirname(__filename)
 const pathSrc = path.resolve(__dirname, 'src')
 
 export default defineConfig({
-	plugins: [vue(), minipic({})],
+	plugins: [
+		vue(),
+		minipic({
+			include: ['1.png'],
+			sharp: {
+				png: {
+					quality: 20
+				},
+				jpeg: {
+					quality: 33
+				}
+			}
+		})
+	],
 	define: {},
 	resolve: {
 		alias: {
