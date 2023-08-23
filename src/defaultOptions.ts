@@ -9,8 +9,7 @@ const defaultSharpOptions = {
 		quality: 75
 	},
 	png: {
-		quality: 75,
-		palette: true
+		quality: 75
 	},
 	webp: {
 		quality: 75
@@ -19,13 +18,13 @@ const defaultSharpOptions = {
 
 const defaultConvertOptions = [
 	{ from: 'png', to: 'png' },
-	{ from: 'jpg', to: 'jpg' },
+	{ from: 'jpg', to: 'jpeg' },
 	{ from: 'jpeg', to: 'jpeg' },
 	{ from: 'webp', to: 'webp' }
 ]
 
 export const defaultOptions = {
-	sharp: defaultSharpOptions,
+	sharpOptions: defaultSharpOptions,
 	convert: defaultConvertOptions, // TODO: change image type
 	include: [], // TODO: include process files
 	exclude: [] // TODO: exclude process files

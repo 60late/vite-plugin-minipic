@@ -8,11 +8,11 @@ import { partial } from 'filesize'
 import ora from 'ora'
 import { merge } from 'lodash-es'
 
-let resolvedConfig
 let outputPath
 let publicDir
+let resolvedConfig
 
-const imgMap = new Map([
+const convertMap = new Map([
 	['jpeg', 'jpeg'],
 	['png', 'png'],
 	['jpg', 'jpeg'],
@@ -65,11 +65,24 @@ const generateLog = (resolvedConfig, recordsMap) => {
 	)
 }
 
+const setImageConvertMap = () => {
+	const { convert } = resolvedConfig
+	convert.map((item) => {
+		const { from, to } = item
+		if (convertMap.get(from)) {
+			convertMap.delete(from)
+		}
+		convertMap.set(from, to)
+	})
+	console.log(convertMap)
+}
+
 const compressFile = async (filePath: string, source: Buffer) => {
 	const ext: string = extname(filePath).slice(1)
-	const compressOption = resolvedConfig[ext]
+	const compressOption = resolvedConfig.sharpOptions[ext]
 	// eslint-disable-next-line no-unexpected-multiline
-	const content: Buffer = await sharp(source)[imgMap.get(ext)](compressOption).toBuffer()
+	console.log('ext', ext, 'to', convertMap.get(ext))
+	const content: Buffer = await sharp(source)[convertMap.get(ext)](compressOption).toBuffer()
 	const oldSize = source.byteLength
 	const newSize = content.byteLength
 
@@ -94,6 +107,7 @@ export default function vitePluginMinipic(options): PluginOption {
 		apply: 'build',
 		configResolved() {
 			resolvedConfig = merge(defaultOptions, options)
+			setImageConvertMap()
 		},
 		async generateBundle(_, bundler) {
 			const imgFiles: string[] = []

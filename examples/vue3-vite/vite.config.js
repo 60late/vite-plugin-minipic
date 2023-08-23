@@ -12,15 +12,18 @@ export default defineConfig({
 	plugins: [
 		vue(),
 		minipic({
-			include: ['1.png'],
-			sharp: {
+			sharpOptions: {
 				png: {
 					quality: 20
 				},
 				jpeg: {
 					quality: 33
 				}
-			}
+			},
+			convert: [
+				{ from: 'png', to: 'webp' },
+				{ from: 'jpg', to: 'webp' }
+			]
 		})
 	],
 	define: {},
