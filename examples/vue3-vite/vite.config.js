@@ -22,7 +22,8 @@ export default defineConfig({
 			},
 			convert: [
 				{ from: 'png', to: 'webp' },
-				{ from: 'jpg', to: 'webp' }
+				{ from: 'jpg', to: 'webp' },
+				{ from: 'jpeg', to: 'jpg' }
 			]
 		})
 	],
