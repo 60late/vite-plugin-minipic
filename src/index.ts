@@ -1,14 +1,12 @@
-import type { PluginOption } from 'vite'
-import { createFilter } from '@rollup/pluginutils'
-import { extname } from 'path'
-import sharp from 'sharp'
-import { defaultOptions } from './defaultOptions'
-import chalk from 'chalk'
-import { partial } from 'filesize'
 import ora from 'ora'
+import sharp from 'sharp'
+import chalk from 'chalk'
+import { extname } from 'path'
+import { partial } from 'filesize'
 import { merge as deepMerge } from 'lodash-es'
-
-import { OutputBundle } from './types'
+import { defaultOptions } from './defaultOptions'
+import { createFilter } from '@rollup/pluginutils'
+import { PluginOption, OutputBundle, OutputAsset } from './types'
 
 let outputPath
 let publicDir
@@ -23,6 +21,21 @@ const convertMap = new Map([
 ])
 
 const recordsMap = new Map<string, { newSize: number; oldSize: number; compressRatio: string; newFileName: string }>()
+
+const handleResolveOptions = (userOptions) => {
+	resolvedConfig = deepMerge(defaultOptions, userOptions)
+	setImageConvertMap()
+}
+
+const setImageConvertMap = () => {
+	const { convert } = resolvedConfig
+	convert.map((item) => {
+		const { from, to } = item
+		convertMap.get(from) && convertMap.delete(from)
+		// sharp.js only have .jpeg() function
+		to === 'jpg' ? convertMap.set(from, 'jpeg') : convertMap.set(from, to)
+	})
+}
 
 const computeSize = partial({ base: 2, standard: 'jedec' })
 
@@ -69,28 +82,27 @@ const generateLog = (resolvedConfig, recordsMap) => {
 	)
 }
 
-const setImageConvertMap = () => {
-	const { convert } = resolvedConfig
-	convert.map((item) => {
-		const { from, to } = item
-		convertMap.get(from) && convertMap.delete(from)
-		// sharp.js only have .jpeg() function
-		to === 'jpg' ? convertMap.set(from, 'jpeg') : convertMap.set(from, to)
+const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles, spinner) => {
+	const handles = imgFiles.map(async (filePath: string) => {
+		const source = (bundler[filePath] as OutputAsset).source
+		await compressFile(filePath, source, bundler)
+		spinner.text = `${chalk.blueBright('[vite-plugin-minipic]: now compressing')} ${chalk.yellow(filePath)}`
 	})
+	await Promise.all(handles)
 }
 
-const compressFile = async (filePath: string, source: Buffer, bundler: OutputBundle) => {
+const compressFile = async (filePath: string, source: string | Uint8Array, bundler: OutputBundle) => {
 	const ext: string = extname(filePath).slice(1)
 	const compressOption = resolvedConfig.sharpOptions[ext]
 	// eslint-disable-next-line no-unexpected-multiline
 	const content: Buffer = await sharp(source)[convertMap.get(ext)](compressOption).toBuffer()
-	const oldSize = source.byteLength
+	const oldSize = (source as Uint8Array).byteLength
 	const newSize = content.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
 
 	// Sometimes .png images will be larger after sharp.js processed,so only convert compressed files.
 	if (newSize < oldSize) {
-		;(bundler[filePath] as any).source = content
+		;(bundler[filePath] as OutputAsset).source = content
 		const { to: newExt } = resolvedConfig.convert.find((item) => item.from === ext)
 		const newFileName = `${bundler[filePath].fileName.split('.')[0]}.${newExt}`
 		bundler[filePath].fileName = newFileName
@@ -103,9 +115,12 @@ const compressFile = async (filePath: string, source: Buffer, bundler: OutputBun
 	}
 }
 
-const handleResolveOptions = (userOptions) => {
-	resolvedConfig = deepMerge(defaultOptions, userOptions)
-	setImageConvertMap()
+const handleFilterImg = (bundler) => {
+	const imgFiles: string[] = []
+	Object.keys(bundler).forEach((bundle) => {
+		imgFilter(bundle) && imgFiles.push(bundle)
+	})
+	return imgFiles
 }
 
 export default function vitePluginMinipic(options): PluginOption {
@@ -117,19 +132,11 @@ export default function vitePluginMinipic(options): PluginOption {
 			handleResolveOptions(options)
 		},
 		async generateBundle(_, bundler) {
-			const imgFiles: string[] = []
-			Object.keys(bundler).forEach((bundle) => {
-				imgFilter(bundle) && imgFiles.push(bundle)
-			})
+			const imgFiles: string[] = handleFilterImg(bundler)
 			if (!imgFiles.length) return
 
 			const spinner = ora().start()
-			const handles = imgFiles.map(async (filePath: string) => {
-				const source = (bundler[filePath] as any).source
-				await compressFile(filePath, source, bundler)
-				spinner.text = `${chalk.blueBright('[vite-plugin-minipic]: now compressing')} ${chalk.yellow(filePath)}`
-			})
-			await Promise.all(handles)
+			await handleGenerateImgFiles(bundler, imgFiles, spinner)
 			spinner.stop()
 		},
 		closeBundle() {
