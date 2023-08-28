@@ -1,17 +1,18 @@
-import ora from 'ora'
+import ora, { Ora } from 'ora'
 import sharp from 'sharp'
 import chalk from 'chalk'
 import { extname } from 'path'
 import { partial } from 'filesize'
 import { merge as deepMerge } from 'lodash-es'
-import { defaultOptions } from './defaultOptions'
+import { defaultOptions } from './default-options'
 import { createFilter } from '@rollup/pluginutils'
-import { PluginOption, OutputBundle, OutputAsset } from './types'
+import { PluginOption, OutputBundle, OutputAsset, UserOptions, RecordsValue } from './types'
 
-let outputPath
-let publicDir
-let resolvedConfig
+let outputPath: string
+let publicDir: string
+let resolvedConfig: UserOptions
 
+//
 const convertMap = new Map([
 	['jpeg', 'jpeg'],
 	['png', 'png'],
@@ -20,9 +21,17 @@ const convertMap = new Map([
 	['webp', 'webp']
 ])
 
-const recordsMap = new Map<string, { newSize: number; oldSize: number; compressRatio: string; newFileName: string }>()
+const outputExtMap = new Map([
+	['jpeg', 'jpeg'],
+	['png', 'png'],
+	['jpg', 'jpeg'],
+	['avif', 'avif'],
+	['webp', 'webp']
+])
 
-const handleResolveOptions = (userOptions) => {
+const recordsMap = new Map<string, RecordsValue>()
+
+const handleResolveOptions = (userOptions: UserOptions) => {
 	resolvedConfig = deepMerge(defaultOptions, userOptions)
 	setImageConvertMap()
 }
@@ -34,12 +43,15 @@ const setImageConvertMap = () => {
 		convertMap.get(from) && convertMap.delete(from)
 		// sharp.js only have .jpeg() function
 		to === 'jpg' ? convertMap.set(from, 'jpeg') : convertMap.set(from, to)
+		// TODO: i have to say, these code looks like shit,i will fix it later
+		outputExtMap.get(from) && outputExtMap.delete(from)
+		outputExtMap.set(from, to)
 	})
 }
 
 const computeSize = partial({ base: 2, standard: 'jedec' })
 
-const imgFilter = (bundle) => {
+const imgFilter = (bundle: string) => {
 	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg)$/i
 	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundle)
 	return res
@@ -49,7 +61,7 @@ const logger = (...args) => {
 	console.log(...args)
 }
 
-const generateLog = (resolvedConfig, recordsMap) => {
+const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 	logger(chalk.green('\n---------------------------------vite-plugin-minipic---------------------------------'))
 	let totalOldSize = 0
 	let totalNewSize = 0
@@ -82,7 +94,7 @@ const generateLog = (resolvedConfig, recordsMap) => {
 	)
 }
 
-const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles, spinner) => {
+const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[], spinner: Ora) => {
 	const handles = imgFiles.map(async (filePath: string) => {
 		const source = (bundler[filePath] as OutputAsset).source
 		await compressFile(filePath, source, bundler)
@@ -103,7 +115,7 @@ const compressFile = async (filePath: string, source: string | Uint8Array, bundl
 	// Sometimes .png images will be larger after sharp.js processed,so only convert compressed files.
 	if (newSize < oldSize) {
 		;(bundler[filePath] as OutputAsset).source = content
-		const { to: newExt } = resolvedConfig.convert.find((item) => item.from === ext)
+		const newExt = outputExtMap.get(ext)
 		const newFileName = `${bundler[filePath].fileName.split('.')[0]}.${newExt}`
 		bundler[filePath].fileName = newFileName
 		recordsMap.set(filePath, {
@@ -115,7 +127,7 @@ const compressFile = async (filePath: string, source: string | Uint8Array, bundl
 	}
 }
 
-const handleFilterImg = (bundler) => {
+const handleFilterImg = (bundler: OutputBundle) => {
 	const imgFiles: string[] = []
 	Object.keys(bundler).forEach((bundle) => {
 		imgFilter(bundle) && imgFiles.push(bundle)
@@ -123,7 +135,7 @@ const handleFilterImg = (bundler) => {
 	return imgFiles
 }
 
-export default function vitePluginMinipic(options): PluginOption {
+export default function vitePluginMinipic(options: UserOptions): PluginOption {
 	return {
 		name: 'vite-plugin-minipic',
 		enforce: 'pre',
@@ -143,7 +155,7 @@ export default function vitePluginMinipic(options): PluginOption {
 			if (publicDir || outputPath) {
 				// TODO: compress images in /public and index.html
 			}
-			generateLog(resolvedConfig, recordsMap)
+			generateLog(recordsMap)
 		}
 	}
 }
