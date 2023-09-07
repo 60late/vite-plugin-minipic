@@ -126,8 +126,8 @@ npm run vue3
 
 ## TODO
 
-- []public filepath compress
-- []cache function
+☐public filepath compress
+☐cache function
 
 ## License
 
