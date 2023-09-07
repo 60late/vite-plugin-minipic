@@ -26,7 +26,7 @@ in vite.config.js
 ```javascript
 import minipic from 'vite-plugin-minipic'
 export default defineConfig({
-	plugins: [vue(), minipic()]
+	plugins: [minipic()]
 })
 ```
 
@@ -38,29 +38,77 @@ in vite.config.js
 import minipic from 'vite-plugin-minipic'
 export default defineConfig({
 	plugins: [
-		vue(),
 		minipic({
-			jpeg: {
-				quality: 75
+			sharpOptions: {
+				png: {
+					quality: 70
+				},
+				jpeg: {
+					quality: 33
+				},
+				jpg: {
+					quality: 70
+				}
 			},
-			jpg: {
-				quality: 70
-			},
-			png: {
-				quality: 60
-			},
-			webp: {
-				quality: 80
-			},
-			avif: {
-				quality: 60
-			}
+			convert: [
+				{ from: 'png', to: 'webp' },
+				{ from: 'jpg', to: 'webp' },
+				{ from: 'jpeg', to: 'jpg' }
+			]
 		})
 	]
 })
 ```
 
+## Options
+
+| param        | type   | default value                 | detail                                                                                                                                           |
+| ------------ | ------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| sharpOptions | Object | [sharpOptions](#sharpoptions) | image compression options,the same config with sharp.js.For more detail config, see [sharp.js](https://sharp.pixelplumbing.com/api-output#jpeg). |
+| convert      | Object | [convert](#convert)           | You can change image type by this option.`from` is the original image type`to` is the compressed image type                                      |
+
+### sharpOptions
+
+image compression options,the same config with sharp.js.  
 For more detail config, see [sharp.js](https://sharp.pixelplumbing.com/api-output#jpeg).
+
+```javascript
+sharpOptions: {
+	avif: {
+		quality: 75
+	},
+	jpeg: {
+		quality: 75
+	},
+	jpg: {
+		quality: 75
+	},
+	png: {
+		quality: 75
+	},
+	webp: {
+		quality: 75
+	}
+}
+```
+
+### convert
+
+You can change image type by this option.  
+`from` is the original image type  
+`to` is the compressed image type
+
+default:
+
+```javascript
+convert: [
+	{ from: 'png', to: 'png' },
+	{ from: 'jpg', to: 'jpeg' },
+	{ from: 'jpeg', to: 'jpeg' },
+	{ from: 'jpg', to: 'webp' },
+	{ from: 'avif', to: 'avif' }
+]
+```
 
 ## Examples
 
@@ -75,6 +123,11 @@ or
 ```
 npm run vue3
 ```
+
+## TODO
+
+- []public filepath compress
+- []cache function
 
 ## License
 

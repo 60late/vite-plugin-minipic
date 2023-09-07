@@ -17,9 +17,9 @@ export interface UserOptions {
 
 export interface Convert {
 	/** Original image type,now support png/jpg/jpeg/webp */
-	from: 'png' | 'jpg' | 'jpeg' | 'webp'
+	from: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif'
 	/** Image type after proccessed,now support png/jpg/jpeg/webp */
-	to: 'png' | 'jpg' | 'jpeg' | 'webp'
+	to: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif'
 }
 
 export interface SharpOption {

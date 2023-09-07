@@ -22,7 +22,8 @@ const defaultConvertOptions: Convert[] = [
 	{ from: 'png', to: 'png' },
 	{ from: 'jpg', to: 'jpeg' },
 	{ from: 'jpeg', to: 'jpeg' },
-	{ from: 'jpg', to: 'webp' }
+	{ from: 'jpg', to: 'webp' },
+	{ from: 'avif', to: 'avif' }
 ]
 
 export const defaultOptions: UserOptions = {
