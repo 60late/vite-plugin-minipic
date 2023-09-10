@@ -126,8 +126,8 @@ npm run vue3
 
 ## TODO
 
-☐public filepath compress
-☐cache function
+<input type="checkbox"> public filepath compress  
+<input type="checkbox"> cache function
 
 ## License
 

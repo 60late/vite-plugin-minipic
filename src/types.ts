@@ -16,9 +16,9 @@ export interface UserOptions {
 }
 
 export interface Convert {
-	/** Original image type,now support png/jpg/jpeg/webp */
+	/** Original image type,now support png/jpg/jpeg/webp/avif */
 	from: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif'
-	/** Image type after proccessed,now support png/jpg/jpeg/webp */
+	/** Image type after proccessed,now support png/jpg/jpeg/webp/avif */
 	to: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif'
 }
 

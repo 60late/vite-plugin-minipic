@@ -129,8 +129,8 @@ npm run vue3
 
 ## 待办
 
-☐public目录压缩  
-☐缓存功能
+<input type="checkbox"> public目录压缩  
+<input type="checkbox"> 缓存功能
 
 ## 证书
 

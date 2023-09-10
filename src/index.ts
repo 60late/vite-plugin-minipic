@@ -12,7 +12,6 @@ let outputPath: string
 let publicDir: string
 let resolvedConfig: UserOptions
 
-//
 const convertMap = new Map([
 	['jpeg', 'jpeg'],
 	['png', 'png'],
@@ -95,10 +94,15 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 }
 
 const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[], spinner: Ora) => {
+	let compressedFileNum: number = 0
+	const totalFileNum: number = imgFiles.length
 	const handles = imgFiles.map(async (filePath: string) => {
 		const source = (bundler[filePath] as OutputAsset).source
 		await compressFile(filePath, source, bundler)
-		spinner.text = `${chalk.blueBright('[vite-plugin-minipic]: now compressing')} ${chalk.yellow(filePath)}`
+		compressedFileNum += 1
+		spinner.text = `${chalk.blueBright(`[vite-plugin-minipic] now compressing`)} ${chalk.yellow(
+			filePath
+		)} (${compressedFileNum}/${totalFileNum})`
 	})
 	await Promise.all(handles)
 }
