@@ -17,7 +17,8 @@ const convertMap = new Map([
 	['png', 'png'],
 	['jpg', 'jpeg'],
 	['avif', 'avif'],
-	['webp', 'webp']
+	['webp', 'webp'],
+	['gif', 'gif']
 ])
 
 const outputExtMap = new Map([
@@ -25,7 +26,8 @@ const outputExtMap = new Map([
 	['png', 'png'],
 	['jpg', 'jpeg'],
 	['avif', 'avif'],
-	['webp', 'webp']
+	['webp', 'webp'],
+	['gif', 'gif']
 ])
 
 const recordsMap = new Map<string, RecordsValue>()
@@ -51,7 +53,7 @@ const setImageConvertMap = () => {
 const computeSize = partial({ base: 2, standard: 'jedec' })
 
 const imgFilter = (bundle: string) => {
-	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg)$/i
+	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg|gif)$/i
 	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundle)
 	return res
 }
@@ -100,18 +102,28 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 		const source = (bundler[filePath] as OutputAsset).source
 		await compressFile(filePath, source, bundler)
 		compressedFileNum += 1
-		spinner.text = `${chalk.blueBright(`[vite-plugin-minipic] now compressing`)} ${chalk.yellow(
+		spinner.text = `${chalk.blue(`[vite-plugin-minipic] now compressing`)} ${chalk.yellow(
 			filePath
 		)} (${compressedFileNum}/${totalFileNum})`
 	})
 	await Promise.all(handles)
 }
 
+// special config for sharp. eg: .gif images need set animated=true,otherwise you can only get the first frame
+const handleSharpConfig = ({ ext }) => {
+	let config = {}
+	if (ext === 'gif') {
+		config = { animated: true }
+	}
+	return config
+}
+
 const compressFile = async (filePath: string, source: string | Uint8Array, bundler: OutputBundle) => {
 	const ext: string = extname(filePath).slice(1)
+	const sharpConfig = handleSharpConfig({ ext })
 	const compressOption = resolvedConfig.sharpOptions[ext]
 	// eslint-disable-next-line no-unexpected-multiline
-	const content: Buffer = await sharp(source)[convertMap.get(ext)](compressOption).toBuffer()
+	const content: Buffer = await sharp(source, sharpConfig)[convertMap.get(ext)](compressOption).toBuffer()
 	const oldSize = (source as Uint8Array).byteLength
 	const newSize = content.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)

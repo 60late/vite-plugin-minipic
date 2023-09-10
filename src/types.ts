@@ -1,6 +1,6 @@
 import type { OutputBundle, OutputAsset } from 'rollup'
 import type { PluginOption } from 'vite'
-import type { AvifOptions, JpegOptions, Jp2Options, PngOptions, WebpOptions } from 'sharp'
+import type { AvifOptions, JpegOptions, Jp2Options, PngOptions, WebpOptions, GifOptions } from 'sharp'
 
 export { OutputBundle, OutputAsset, PluginOption }
 
@@ -16,10 +16,10 @@ export interface UserOptions {
 }
 
 export interface Convert {
-	/** Original image type,now support png/jpg/jpeg/webp/avif */
-	from: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif'
-	/** Image type after proccessed,now support png/jpg/jpeg/webp/avif */
-	to: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif'
+	/** Original image type,now support png/jpg/jpeg/webp/avif/gif */
+	from: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif' | 'gif'
+	/** Image type after proccessed,now support png/jpg/jpeg/webp/avif/gif */
+	to: 'png' | 'jpg' | 'jpeg' | 'webp' | 'avif' | 'gif'
 }
 
 export interface SharpOption {
@@ -28,6 +28,7 @@ export interface SharpOption {
 	jpg: Jp2Options
 	png: PngOptions
 	webp: WebpOptions
+	gif: GifOptions
 }
 
 export interface RecordsValue {

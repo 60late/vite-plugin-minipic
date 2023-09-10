@@ -5,6 +5,8 @@
 Based on [sharp](https://github.com/lovell/sharp), vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
 It's easy to use, and it's faaaaaaast!
 
+![example](https://x.imgs.ovh/x/2023/09/10/64fd36b59a3d2.gif)
+
 ## Install
 
 ```
@@ -88,7 +90,8 @@ sharpOptions: {
 	},
 	webp: {
 		quality: 75
-	}
+	},
+	gif:{}
 }
 ```
 

@@ -15,7 +15,8 @@ const defaultSharpOptions: SharpOption = {
 	},
 	webp: {
 		quality: 75
-	}
+	},
+	gif: {}
 }
 
 const defaultConvertOptions: Convert[] = [

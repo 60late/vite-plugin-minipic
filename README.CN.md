@@ -4,6 +4,8 @@
 
 基于[sharp](https://github.com/lovell/sharp)开发的vite图片压缩插件，使用简单，重要的是它真的很快！！
 
+![example](https://x.imgs.ovh/x/2023/09/10/64fd36b59a3d2.gif)
+
 ## 安装
 
 ```
@@ -89,7 +91,8 @@ sharpOptions: {
 	},
 	webp: {
 		quality: 75
-	}
+	},
+	gif:{}
 }
 ```
 
