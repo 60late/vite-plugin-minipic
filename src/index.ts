@@ -71,9 +71,9 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 		totalOldSize += oldSize
 		totalNewSize += newSize
 		logger(
-			chalk.blue(fileName),
+			chalk.cyan(fileName),
 			'→',
-			chalk.blue(newFileName),
+			chalk.cyan(newFileName),
 			chalk.red(computeSize(oldSize)),
 			'→',
 			chalk.magentaBright(computeSize(newSize)),
@@ -85,13 +85,13 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 
 	logger(
 		chalk.green('---------------------------------vite-plugin-minipic---------------------------------'),
-		chalk.green('\n[vite-plugin-minipic]: ✔ Compress done!'),
-		chalk.blue('OriginSize:'),
+		chalk.cyan('\n OriginSize:'),
 		chalk.red(computeSize(totalOldSize)),
-		chalk.blue('→ NowSize:'),
+		chalk.cyan('→ NowSize:'),
 		chalk.magentaBright(computeSize(totalNewSize)),
-		chalk.blue('TotalRatio:'),
-		`${chalk.green(`${totalCompressRatio}%↓ \n`)}`
+		chalk.cyan('TotalRatio:'),
+		`${chalk.green(`${totalCompressRatio}%↓`)}`,
+		chalk.green('\n[vite-plugin-minipic]: ✔ Compress done!')
 	)
 }
 
@@ -102,7 +102,7 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 		const source = (bundler[filePath] as OutputAsset).source
 		await compressFile(filePath, source, bundler)
 		compressedFileNum += 1
-		spinner.text = `${chalk.blue(`[vite-plugin-minipic] now compressing`)} ${chalk.yellow(
+		spinner.text = `${chalk.cyan(`[vite-plugin-minipic] now compressing`)} ${chalk.yellowBright(
 			filePath
 		)} (${compressedFileNum}/${totalFileNum})`
 	})
