@@ -30,6 +30,7 @@ const defaultConvertOptions: Convert[] = [
 export const defaultOptions: UserOptions = {
 	sharpOptions: defaultSharpOptions,
 	convert: defaultConvertOptions,
-	include: [],
-	exclude: []
+	cache: true,
+	include: [], // TODO:
+	exclude: [] // TODO:
 }

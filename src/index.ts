@@ -1,12 +1,21 @@
 import ora, { Ora } from 'ora'
 import sharp from 'sharp'
 import chalk from 'chalk'
+import { DiskCache } from './cache'
 import { extname } from 'path'
 import { partial } from 'filesize'
 import { merge as deepMerge } from 'lodash-es'
 import { defaultOptions } from './default-options'
 import { createFilter } from '@rollup/pluginutils'
-import { PluginOption, OutputBundle, OutputAsset, UserOptions, RecordsValue, SharpConfig } from './types'
+import {
+	PluginOption,
+	OutputBundle,
+	OutputAsset,
+	UserOptions,
+	RecordsValue,
+	SharpConfig,
+	GetCacheByFilePath
+} from './types'
 
 let outputPath: string
 let publicDir: string
@@ -32,12 +41,15 @@ const outputExtMap = new Map([
 
 const recordsMap = new Map<string, RecordsValue>()
 
+// nodehash
+const diskCache = new DiskCache()
+
 const handleResolveOptions = (userOptions: UserOptions) => {
 	resolvedConfig = deepMerge(defaultOptions, userOptions)
-	setImageConvertMap()
+	setImageconvertMap()
 }
 
-const setImageConvertMap = () => {
+const setImageconvertMap = () => {
 	const { convert } = resolvedConfig
 	convert.map((item) => {
 		const { from, to } = item
@@ -63,44 +75,68 @@ const logger = (...args) => {
 }
 
 const generateLog = (recordsMap: Map<string, RecordsValue>) => {
-	logger(chalk.green('\n---------------------------------vite-plugin-minipic---------------------------------'))
-	let totalOldSize = 0
-	let totalNewSize = 0
-	recordsMap.forEach((record, fileName) => {
-		const { oldSize, newSize, compressRatio, newFileName } = record
-		totalOldSize += oldSize
-		totalNewSize += newSize
+	if (recordsMap.size) {
+		logger(chalk.green('\n---------------------------------vite-plugin-minipic---------------------------------'))
+		let totalOldSize = 0
+		let totalNewSize = 0
+		recordsMap.forEach((record, fileName) => {
+			const { oldSize, newSize, compressRatio, newFileName } = record
+			totalOldSize += oldSize
+			totalNewSize += newSize
+			logger(
+				chalk.cyan(fileName),
+				'→',
+				chalk.cyan(newFileName),
+				chalk.red(computeSize(oldSize)),
+				'→',
+				chalk.magentaBright(computeSize(newSize)),
+				`${chalk.green(`${compressRatio}%↓`)}`
+			)
+		})
+
+		const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
+
 		logger(
-			chalk.cyan(fileName),
-			'→',
-			chalk.cyan(newFileName),
-			chalk.red(computeSize(oldSize)),
-			'→',
-			chalk.magentaBright(computeSize(newSize)),
-			`${chalk.green(`${compressRatio}%↓`)}`
+			chalk.green('---------------------------------vite-plugin-minipic---------------------------------'),
+			chalk.cyan('\n OriginSize:'),
+			chalk.red(computeSize(totalOldSize)),
+			chalk.cyan('→ NowSize:'),
+			chalk.magentaBright(computeSize(totalNewSize)),
+			chalk.cyan('TotalRatio:'),
+			`${chalk.green(`${totalCompressRatio}%↓`)}`,
+			chalk.green('\n[vite-plugin-minipic]: ✔ Compress done!')
 		)
-	})
+	} else {
+		logger(chalk.yellow('\n[vite-plugin-minipic]:There are no images or images are all read from cache'))
+	}
+}
 
-	const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
+/**
+ * @description: Check if use cache
+ * @param {string} filePath
+ * @return {GetCacheByFilePath} [isUseCache,imgBuffer]
+ */
+const getCacheByFilePath = (filePath: string): GetCacheByFilePath => {
+	const [outputName, outputExt] = filePath.split('.')
+	const outputFileName = `${outputName}.${outputExtMap.get(outputExt)}`
+	const imgBuffer: Buffer = diskCache.get(outputFileName)
+	const isCacheExist = diskCache.has(outputFileName)
+	const isUseCache: boolean = resolvedConfig.cache && isCacheExist
 
-	logger(
-		chalk.green('---------------------------------vite-plugin-minipic---------------------------------'),
-		chalk.cyan('\n OriginSize:'),
-		chalk.red(computeSize(totalOldSize)),
-		chalk.cyan('→ NowSize:'),
-		chalk.magentaBright(computeSize(totalNewSize)),
-		chalk.cyan('TotalRatio:'),
-		`${chalk.green(`${totalCompressRatio}%↓`)}`,
-		chalk.green('\n[vite-plugin-minipic]: ✔ Compress done!')
-	)
+	return { isUseCache, imgBuffer }
 }
 
 const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[], spinner: Ora) => {
 	let compressedFileNum: number = 0
 	const totalFileNum: number = imgFiles.length
 	const handles = imgFiles.map(async (filePath: string) => {
-		const source = (bundler[filePath] as OutputAsset).source
-		await compressFile(filePath, source, bundler)
+		// debugger
+		const { isUseCache, imgBuffer } = getCacheByFilePath(filePath)
+		if (isUseCache) {
+			changeOutputBundle(bundler, filePath, imgBuffer)
+		} else {
+			await compressFile(filePath, bundler)
+		}
 		compressedFileNum += 1
 		spinner.text = `${chalk.cyan(`[vite-plugin-minipic] now compressing`)} ${chalk.yellowBright(
 			filePath
@@ -118,22 +154,36 @@ const handleSharpConfig = ({ ext }: SharpConfig) => {
 	return config
 }
 
-const compressFile = async (filePath: string, source: string | Uint8Array, bundler: OutputBundle) => {
+/**
+ * @description: Change final output bundle
+ * @param {OutputBundle} bundler
+ * @param {string} filePath
+ * @param {Buffer} imgBuffer
+ */
+const changeOutputBundle = (bundler: OutputBundle, filePath: string, imgBuffer: Buffer) => {
+	const ext = extname(filePath).slice(1)
+	;(bundler[filePath] as OutputAsset).source = imgBuffer
+	const newExt = outputExtMap.get(ext)
+	const newFileName = `${bundler[filePath].fileName.split('.')[0]}.${newExt}`
+	bundler[filePath].fileName = newFileName
+	return { newFileName }
+}
+
+const compressFile = async (filePath: string, bundler: OutputBundle) => {
+	const source = (bundler[filePath] as OutputAsset).source
 	const ext: string = extname(filePath).slice(1)
 	const sharpConfig = handleSharpConfig({ ext })
 	const compressOption = resolvedConfig.sharpOptions[ext]
 	// eslint-disable-next-line no-unexpected-multiline
-	const content: Buffer = await sharp(source, sharpConfig)[convertMap.get(ext)](compressOption).toBuffer()
+	const imgBuffer: Buffer = await sharp(source, sharpConfig)[convertMap.get(ext)](compressOption).toBuffer()
 	const oldSize = (source as Uint8Array).byteLength
-	const newSize = content.byteLength
+	const newSize = imgBuffer.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
 
 	// Sometimes .png images will be larger after sharp.js processed,so only convert compressed files.
 	if (newSize < oldSize) {
-		;(bundler[filePath] as OutputAsset).source = content
-		const newExt = outputExtMap.get(ext)
-		const newFileName = `${bundler[filePath].fileName.split('.')[0]}.${newExt}`
-		bundler[filePath].fileName = newFileName
+		const { newFileName } = changeOutputBundle(bundler, filePath, imgBuffer)
+		diskCache.set(newFileName, imgBuffer)
 		recordsMap.set(filePath, {
 			newSize,
 			oldSize,

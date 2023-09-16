@@ -9,6 +9,8 @@ export interface UserOptions {
 	sharpOptions: SharpOption
 	/** Change image type */
 	convert: Convert[]
+	/** Use cache mode to improve compress speed.Default value:false */
+	cache: boolean
 	/** Include files should be processed */
 	include: string[] | string
 	/** Exclude files should not be processed */
@@ -45,4 +47,9 @@ export interface RecordsValue {
 export interface SharpConfig {
 	/** image extension type */
 	ext: string
+}
+
+export interface GetCacheByFilePath {
+	isUseCache: boolean
+	imgBuffer: Buffer
 }

@@ -24,10 +24,10 @@ export default defineConfig({
 				{ from: 'png', to: 'webp' },
 				{ from: 'jpg', to: 'webp' },
 				{ from: 'jpeg', to: 'jpg' }
-			]
+			],
+			cache: false
 		})
 	],
-	define: {},
 	resolve: {
 		alias: {
 			'@': pathSrc

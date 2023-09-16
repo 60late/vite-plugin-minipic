@@ -1,9 +1,9 @@
 # vite-plugin-minipic
 
-**English** | [中文](./README.CN.md)
-
 Based on [sharp](https://github.com/lovell/sharp), vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
 It's easy to use, and it's faaaaaaast!
+
+**English** | [中文](./README.CN.md)
 
 ![example](https://x.imgs.ovh/x/2023/09/10/64fd36b59a3d2.gif)
 
@@ -56,7 +56,8 @@ export default defineConfig({
 				{ from: 'png', to: 'webp' },
 				{ from: 'jpg', to: 'webp' },
 				{ from: 'jpeg', to: 'jpg' }
-			]
+			],
+			cache: true
 		})
 	]
 })
@@ -64,10 +65,11 @@ export default defineConfig({
 
 ## Options
 
-| param        | type   | default value                 | detail                                                                                                                                           |
-| ------------ | ------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| sharpOptions | Object | [sharpOptions](#sharpoptions) | image compression options,the same config with sharp.js.For more detail config, see [sharp.js](https://sharp.pixelplumbing.com/api-output#jpeg). |
-| convert      | Object | [convert](#convert)           | You can change image type by this option.`from` is the original image type`to` is the compressed image type                                      |
+| param        | type    | default value                 | detail                                                                                                                                           |
+| ------------ | ------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| sharpOptions | Object  | [sharpOptions](#sharpoptions) | image compression options,the same config with sharp.js.For more detail config, see [sharp.js](https://sharp.pixelplumbing.com/api-output#jpeg). |
+| convert      | Object  | [convert](#convert)           | You can change image type by this option.`from` is the original image type`to` is the compressed image type                                      |
+| cache        | Boolean | true                          | This option will speed up compression process by saving imges in the disk. Set `false` to disable this function.                                 |
 
 ### sharpOptions
 
@@ -129,8 +131,8 @@ npm run vue3
 
 ## TODO
 
-<input type="checkbox"> public filepath compress  
-<input type="checkbox"> cache function
+- [x] cache function
+- [ ] public filepath compress
 
 ## License
 
