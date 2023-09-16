@@ -1,7 +1,8 @@
 # vite-plugin-minipic
 
-Based on [sharp](https://github.com/lovell/sharp), vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
+vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
 It's easy to use, and it's faaaaaaast!
+Based on [sharp](https://github.com/lovell/sharp)
 
 **English** | [中文](./README.CN.md)
 
