@@ -6,7 +6,7 @@ import { partial } from 'filesize'
 import { merge as deepMerge } from 'lodash-es'
 import { defaultOptions } from './default-options'
 import { createFilter } from '@rollup/pluginutils'
-import { PluginOption, OutputBundle, OutputAsset, UserOptions, RecordsValue } from './types'
+import { PluginOption, OutputBundle, OutputAsset, UserOptions, RecordsValue, SharpConfig } from './types'
 
 let outputPath: string
 let publicDir: string
@@ -110,7 +110,7 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 }
 
 // special config for sharp. eg: .gif images need set animated=true,otherwise you can only get the first frame
-const handleSharpConfig = ({ ext }) => {
+const handleSharpConfig = ({ ext }: SharpConfig) => {
 	let config = {}
 	if (ext === 'gif') {
 		config = { animated: true }

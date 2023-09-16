@@ -41,3 +41,8 @@ export interface RecordsValue {
 	/** New image file name after proccessed */
 	newFileName: string
 }
+
+export interface SharpConfig {
+	/** image extension type */
+	ext: string
+}
