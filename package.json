@@ -1,6 +1,8 @@
 {
 	"name": "vite-plugin-minipic",
 	"version": "0.1.6",
+	"description": "vite-plugin-minipic is a helpful tool to compress images in morden vite project.",
+	"author": "60late",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -45,6 +47,11 @@
 	"publishConfig": {
 		"registry": "https://registry.npmjs.org/"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/60late/vite-plugin-minipic"
+	},
+	"homepage": "https://github.com/60late/vite-plugin-minipic",
 	"keywords": [
 		"vite",
 		"webpack",
