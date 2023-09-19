@@ -1,14 +1,14 @@
-import ora, { Ora } from 'ora'
 import sharp from 'sharp'
 import chalk from 'chalk'
 import boxen from 'boxen'
-import type { Options as BoxenOptions } from 'boxen'
-import { DiskCache } from './cache'
+import ora, { Ora } from 'ora'
 import { extname } from 'path'
 import { partial } from 'filesize'
+import { DiskCache } from './cache'
 import { merge as deepMerge } from 'lodash-es'
-import { defaultOptions } from './default-options'
 import { createFilter } from '@rollup/pluginutils'
+import { defaultOptions } from './default-options'
+import type { Options as BoxenOptions } from 'boxen'
 import {
 	PluginOption,
 	OutputBundle,
@@ -22,6 +22,8 @@ import {
 let outputPath: string
 let publicDir: string
 let resolvedConfig: UserOptions
+const recordsMap = new Map<string, RecordsValue>()
+const diskCache = new DiskCache()
 
 const convertMap = new Map([
 	['jpeg', 'jpeg'],
@@ -41,16 +43,18 @@ const outputExtMap = new Map([
 	['gif', 'gif']
 ])
 
-const recordsMap = new Map<string, RecordsValue>()
-
-// nodehash
-const diskCache = new DiskCache()
-
+/**
+ * @description: merge user option and default option
+ * @param {UserOptions} userOptions
+ */
 const handleResolveOptions = (userOptions: UserOptions) => {
 	resolvedConfig = deepMerge(defaultOptions, userOptions)
 	setImageconvertMap()
 }
 
+/**
+ * @description: sharp.js only have jpeg() function,dont have jpg() function. So need to special process
+ */
 const setImageconvertMap = () => {
 	const { convert } = resolvedConfig
 	convert.map((item) => {
@@ -64,17 +68,33 @@ const setImageconvertMap = () => {
 	})
 }
 
+/**
+ * @description: compute fileSize
+ */
 const computeSize = partial({ base: 2, standard: 'jedec' })
 
-const imgFilter = (bundle: string) => {
-	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg|gif)$/i
-	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundle)
-	return res
-}
-
+/**
+ * @description: console.log
+ * @param {array} args
+ */
 const logger = (...args) => {
 	console.log(...args)
 }
+
+/**
+ * @description: filter image file
+ * @param {string} bundleName
+ */
+const imgFilter = (bundleName: string) => {
+	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg|gif)$/i
+	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundleName)
+	return res
+}
+
+/**
+ * @description: generate output log
+ * @param {Map} recordsMap
+ */
 
 const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 	if (recordsMap.size) {
@@ -125,6 +145,12 @@ const getCacheByFilePath = (filePath: string): GetCacheByFilePath => {
 	return { isUseCache, imgBuffer }
 }
 
+/**
+ * @description: generate imgage files.If use cache,read from ./node_modules/.cache. If not use cache, compress image files.
+ * @param {OutputBundle} bundler
+ * @param {string} imgFiles
+ * @param {Ora} spinner
+ */
 const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[], spinner: Ora) => {
 	let compressedFileNum: number = 0
 	const totalFileNum: number = imgFiles.length
@@ -143,7 +169,10 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 	await Promise.all(handles)
 }
 
-// special config for sharp. eg: .gif images need set animated=true,otherwise you can only get the first frame
+/**
+ * @description:  special config for sharp. eg: .gif images need set animated=true,otherwise you can only get the first frame
+ * @return {*} config
+ */
 const handleSharpConfig = ({ ext }: SharpConfig) => {
 	let config = {}
 	if (ext === 'gif') {
@@ -153,7 +182,7 @@ const handleSharpConfig = ({ ext }: SharpConfig) => {
 }
 
 /**
- * @description: Change final output bundle
+ * @description: Change final output bundle. Mainly change `source` and `fileName`
  * @param {OutputBundle} bundler
  * @param {string} filePath
  * @param {Buffer} imgBuffer
@@ -167,12 +196,17 @@ const changeOutputBundle = (bundler: OutputBundle, filePath: string, imgBuffer: 
 	return { newFileName }
 }
 
+/**
+ * @description: Compress image files
+ * @param {string} filePath
+ * @param {OutputBundle} bundler
+ * @return {*}
+ */
 const compressFile = async (filePath: string, bundler: OutputBundle) => {
 	const source = (bundler[filePath] as OutputAsset).source
 	const ext: string = extname(filePath).slice(1)
 	const sharpConfig = handleSharpConfig({ ext })
 	const compressOption = resolvedConfig.sharpOptions[ext]
-	// eslint-disable-next-line no-unexpected-multiline
 	const imgBuffer: Buffer = await sharp(source, sharpConfig)[convertMap.get(ext)](compressOption).toBuffer()
 	const oldSize = (source as Uint8Array).byteLength
 	const newSize = imgBuffer.byteLength
@@ -191,6 +225,10 @@ const compressFile = async (filePath: string, bundler: OutputBundle) => {
 	}
 }
 
+/**
+ * @description: Filter image files
+ * @param {OutputBundle} bundler
+ */
 const handleFilterImg = (bundler: OutputBundle) => {
 	const imgFiles: string[] = []
 	Object.keys(bundler).forEach((bundle) => {

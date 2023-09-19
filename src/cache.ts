@@ -7,6 +7,7 @@ export class DiskCache {
 	constructor() {
 		this.directoryGuard(cacheDirectory)
 	}
+
 	/**
 	 *
 	 * @description: Get disk file by Name

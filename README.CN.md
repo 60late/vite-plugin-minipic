@@ -2,9 +2,9 @@
 
 vite图片压缩插件，使用简单，重要的是它真的很快！！  
 基于[sharp](https://github.com/lovell/sharp)开发  
-![example](https://x.imgs.ovh/x/2023/09/10/64fd36b59a3d2.gif)
+![example](https://img1.imgtp.com/2023/09/19/G4Dr2my3.gif)
 
-**中文** | [English](./README.md)
+**中文** | [English](README.md)
 
 ## 安装
 

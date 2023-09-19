@@ -33,6 +33,9 @@ export interface SharpOption {
 	gif: GifOptions
 }
 
+/**
+ * @description: output log records value
+ */
 export interface RecordsValue {
 	/** Image file size after proccessed */
 	newSize: number
