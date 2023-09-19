@@ -25,7 +25,7 @@ export default defineConfig({
 				{ from: 'jpg', to: 'webp' },
 				{ from: 'jpeg', to: 'jpg' }
 			],
-			cache: false
+			cache: true
 		})
 	],
 	resolve: {

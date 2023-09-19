@@ -1,6 +1,8 @@
 import ora, { Ora } from 'ora'
 import sharp from 'sharp'
 import chalk from 'chalk'
+import boxen from 'boxen'
+import type { Options as BoxenOptions } from 'boxen'
 import { DiskCache } from './cache'
 import { extname } from 'path'
 import { partial } from 'filesize'
@@ -76,36 +78,33 @@ const logger = (...args) => {
 
 const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 	if (recordsMap.size) {
-		logger(chalk.green('\n---------------------------------vite-plugin-minipic---------------------------------'))
 		let totalOldSize = 0
 		let totalNewSize = 0
+		let logContent = ``
+
 		recordsMap.forEach((record, fileName) => {
 			const { oldSize, newSize, compressRatio, newFileName } = record
 			totalOldSize += oldSize
 			totalNewSize += newSize
-			logger(
-				chalk.cyan(fileName),
-				'→',
-				chalk.cyan(newFileName),
-				chalk.red(computeSize(oldSize)),
-				'→',
-				chalk.magentaBright(computeSize(newSize)),
-				`${chalk.green(`${compressRatio}%↓`)}`
-			)
+			logContent += `${chalk.cyan(fileName)} → ${chalk.cyan(newFileName)}  ${chalk.red(
+				computeSize(oldSize)
+			)} → ${chalk.magentaBright(computeSize(newSize))} ${chalk.green(`${compressRatio}%↓`)} \n`
 		})
 
 		const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
+		logContent += `\n🎉 ${chalk.green('Compress done! \n')}🚀 ${chalk.cyan('OriginSize:')} ${chalk.red(
+			computeSize(totalOldSize)
+		)} ${chalk.cyan('→ NowSize:')} ${chalk.magentaBright(computeSize(totalNewSize))} ${chalk.cyan(
+			'TotalRatio:'
+		)} ${chalk.green(`${totalCompressRatio}%↓`)}`
 
-		logger(
-			chalk.green('---------------------------------vite-plugin-minipic---------------------------------'),
-			chalk.cyan('\n OriginSize:'),
-			chalk.red(computeSize(totalOldSize)),
-			chalk.cyan('→ NowSize:'),
-			chalk.magentaBright(computeSize(totalNewSize)),
-			chalk.cyan('TotalRatio:'),
-			`${chalk.green(`${totalCompressRatio}%↓`)}`,
-			chalk.green('\n[vite-plugin-minipic]: ✔ Compress done!')
-		)
+		const boxenConfig: BoxenOptions = {
+			padding: 1,
+			margin: 1,
+			title: `${chalk.green('vite-plugin-minipic')}`,
+			titleAlignment: 'center'
+		}
+		logger(boxen(logContent, boxenConfig))
 	} else {
 		logger(chalk.yellow('\n[vite-plugin-minipic]:There are no images or images are all read from cache'))
 	}
@@ -130,7 +129,6 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 	let compressedFileNum: number = 0
 	const totalFileNum: number = imgFiles.length
 	const handles = imgFiles.map(async (filePath: string) => {
-		// debugger
 		const { isUseCache, imgBuffer } = getCacheByFilePath(filePath)
 		if (isUseCache) {
 			changeOutputBundle(bundler, filePath, imgBuffer)

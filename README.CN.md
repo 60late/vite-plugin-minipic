@@ -1,7 +1,7 @@
 # vite-plugin-minipic
 
-vite图片压缩插件，使用简单，重要的是它真的很快！！
-基于[sharp]开发(https://github.com/lovell/sharp)
+vite图片压缩插件，使用简单，重要的是它真的很快！！  
+基于[sharp](https://github.com/lovell/sharp)开发  
 ![example](https://x.imgs.ovh/x/2023/09/10/64fd36b59a3d2.gif)
 
 **中文** | [English](./README.md)
