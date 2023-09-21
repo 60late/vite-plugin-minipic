@@ -1,8 +1,8 @@
 import type { OutputBundle, OutputAsset } from 'rollup'
-import type { PluginOption } from 'vite'
+import type { PluginOption, ResolvedConfig } from 'vite'
 import type { AvifOptions, JpegOptions, Jp2Options, PngOptions, WebpOptions, GifOptions } from 'sharp'
 
-export { OutputBundle, OutputAsset, PluginOption }
+export { OutputBundle, OutputAsset, PluginOption, ResolvedConfig }
 
 export interface UserOptions {
 	/** Sharp.js Options,for more detail options see https://sharp.pixelplumbing.com */

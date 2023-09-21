@@ -9,10 +9,14 @@
 <script setup></script>
 <style lang="less" scoped>
 img {
+	display: block;
 	width: 1000px;
 }
 
 .bg {
 	background: url('@/assets/img/pic5.jpg');
+	background-size: 100% 100%;
+	width: 1000px;
+	height: 1000px;
 }
 </style>

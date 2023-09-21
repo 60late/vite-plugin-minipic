@@ -2,7 +2,7 @@ import sharp from 'sharp'
 import chalk from 'chalk'
 import boxen from 'boxen'
 import ora, { Ora } from 'ora'
-import { extname } from 'path'
+import path from 'path'
 import { partial } from 'filesize'
 import { DiskCache } from './cache'
 import { merge as deepMerge } from 'lodash-es'
@@ -16,7 +16,8 @@ import {
 	UserOptions,
 	RecordsValue,
 	SharpConfig,
-	GetCacheByFilePath
+	GetCacheByFilePath,
+	ResolvedConfig
 } from './types'
 
 let outputPath: string
@@ -44,10 +45,16 @@ const outputExtMap = new Map([
 ])
 
 /**
+ * @description: Map[oldFileName,newFileName]
+ */
+const imageNameMap = new Map<string, string>([])
+
+/**
  * @description: merge user option and default option
  * @param {UserOptions} userOptions
  */
-const handleResolveOptions = (userOptions: UserOptions) => {
+const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) => {
+	publicDir = config.build.outDir
 	resolvedConfig = deepMerge(defaultOptions, userOptions)
 	setImageconvertMap()
 }
@@ -133,7 +140,7 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 /**
  * @description: Check if use cache
  * @param {string} filePath
- * @return {GetCacheByFilePath} [isUseCache,imgBuffer]
+ * @return {GetCacheByFilePath} {isUseCache,imgBuffer}
  */
 const getCacheByFilePath = (filePath: string): GetCacheByFilePath => {
 	const [outputName, outputExt] = filePath.split('.')
@@ -188,11 +195,14 @@ const handleSharpConfig = ({ ext }: SharpConfig) => {
  * @param {Buffer} imgBuffer
  */
 const changeOutputBundle = (bundler: OutputBundle, filePath: string, imgBuffer: Buffer) => {
-	const ext = extname(filePath).slice(1)
-	;(bundler[filePath] as OutputAsset).source = imgBuffer
+	const ext = path.extname(filePath).slice(1)
 	const newExt = outputExtMap.get(ext)
 	const newFileName = `${bundler[filePath].fileName.split('.')[0]}.${newExt}`
+	imageNameMap.set(filePath, newFileName)
+
 	bundler[filePath].fileName = newFileName
+	;(bundler[filePath] as OutputAsset).source = imgBuffer
+
 	return { newFileName }
 }
 
@@ -204,7 +214,7 @@ const changeOutputBundle = (bundler: OutputBundle, filePath: string, imgBuffer: 
  */
 const compressFile = async (filePath: string, bundler: OutputBundle) => {
 	const source = (bundler[filePath] as OutputAsset).source
-	const ext: string = extname(filePath).slice(1)
+	const ext: string = path.extname(filePath).slice(1)
 	const sharpConfig = handleSharpConfig({ ext })
 	const compressOption = resolvedConfig.sharpOptions[ext]
 	const imgBuffer: Buffer = await sharp(source, sharpConfig)[convertMap.get(ext)](compressOption).toBuffer()
@@ -237,20 +247,46 @@ const handleFilterImg = (bundler: OutputBundle) => {
 	return imgFiles
 }
 
+/**
+ * @description: replace image name in .css and .js files
+ * @param {OutputBundle} bundler
+ */
+const replaceImgName = (bundler: OutputBundle) => {
+	// only need replace image names in .css and .js files
+	const bundleFiles: string[] = Object.keys(bundler).filter((bundleFileName) => {
+		const ext = bundleFileName.split('.')[1]
+		return ext === 'css' || ext === 'js'
+	})
+
+	imageNameMap.forEach((newFileName, oldFileName) => {
+		bundleFiles.map((file) => {
+			const fileExt = file.split('.')[1]
+			if (fileExt === 'css') {
+				const fileSource = bundler[file]['source']
+				bundler[file]['source'] = fileSource.replace(`${oldFileName}`, `${newFileName}`)
+			}
+			if (fileExt === 'js') {
+				const fileCode = bundler[file]['code']
+				bundler[file]['code'] = fileCode.replace(`${oldFileName}`, `${newFileName}`)
+			}
+		})
+	})
+}
+
 export default function vitePluginMinipic(options: UserOptions): PluginOption {
 	return {
 		name: 'vite-plugin-minipic',
 		enforce: 'pre',
 		apply: 'build',
-		configResolved() {
-			handleResolveOptions(options)
+		configResolved(config: ResolvedConfig) {
+			handleResolveOptions(options, config)
 		},
 		async generateBundle(_, bundler) {
 			const imgFiles: string[] = handleFilterImg(bundler)
 			if (!imgFiles.length) return
-
 			const spinner = ora().start()
 			await handleGenerateImgFiles(bundler, imgFiles, spinner)
+			replaceImgName(bundler)
 			spinner.stop()
 		},
 		closeBundle() {
