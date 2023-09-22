@@ -38,7 +38,7 @@ const convertMap = new Map([
 const outputExtMap = new Map([
 	['jpeg', 'jpeg'],
 	['png', 'png'],
-	['jpg', 'jpeg'],
+	['jpg', 'jpg'],
 	['avif', 'avif'],
 	['webp', 'webp'],
 	['gif', 'gif']

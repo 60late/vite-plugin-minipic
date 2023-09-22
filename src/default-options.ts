@@ -21,9 +21,8 @@ const defaultSharpOptions: SharpOption = {
 
 const defaultConvertOptions: Convert[] = [
 	{ from: 'png', to: 'png' },
-	{ from: 'jpg', to: 'jpeg' },
+	{ from: 'jpg', to: 'jpg' },
 	{ from: 'jpeg', to: 'jpeg' },
-	{ from: 'jpg', to: 'webp' },
 	{ from: 'avif', to: 'avif' }
 ]
 
