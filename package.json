@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-minipic",
-	"version": "0.1.9",
+	"version": "0.1.10",
 	"description": "vite-plugin-minipic is a helpful tool to compress images in morden vite project.",
 	"author": "60late",
 	"main": "dist/index.js",
