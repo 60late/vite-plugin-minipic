@@ -16,12 +16,9 @@ import {
 	UserOptions,
 	RecordsValue,
 	SharpConfig,
-	GetCacheByFilePath,
-	ResolvedConfig
+	GetCacheByFilePath
 } from './types'
 
-let outputPath: string
-let publicDir: string
 let resolvedConfig: UserOptions
 const recordsMap = new Map<string, RecordsValue>()
 const diskCache = new DiskCache()
@@ -53,8 +50,7 @@ const imageNameMap = new Map<string, string>([])
  * @description: merge user option and default option
  * @param {UserOptions} userOptions
  */
-const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) => {
-	publicDir = config.build.outDir
+const handleResolveOptions = (userOptions: UserOptions) => {
 	resolvedConfig = deepMerge(defaultOptions, userOptions)
 	setImageconvertMap()
 }
@@ -100,7 +96,7 @@ const imgFilter = (bundleName: string) => {
 
 /**
  * @description: generate output log
- * @param {Map} recordsMap
+ * @param {Map<string, RecordsValue>} recordsMap
  */
 
 const generateLog = (recordsMap: Map<string, RecordsValue>) => {
@@ -110,20 +106,29 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 		let logContent = ``
 
 		recordsMap.forEach((record, fileName) => {
-			const { oldSize, newSize, compressRatio, newFileName } = record
-			totalOldSize += oldSize
-			totalNewSize += newSize
-			logContent += `${chalk.cyan(fileName)} → ${chalk.cyan(newFileName)}  ${chalk.red(
-				computeSize(oldSize)
-			)} → ${chalk.magentaBright(computeSize(newSize))} ${chalk.green(`${compressRatio}%↓`)} \n`
+			const { isCache, oldSize, newSize, compressRatio, newFileName } = record
+			if (isCache) {
+				logContent += `${chalk.cyan(fileName)} → ${chalk.cyan(newFileName)}  ${chalk.green('(Read from cache)')} \n`
+			} else {
+				totalOldSize += oldSize
+				totalNewSize += newSize
+				logContent += `${chalk.cyan(fileName)} → ${chalk.cyan(newFileName)}  ${chalk.red(
+					computeSize(oldSize)
+				)} → ${chalk.magentaBright(computeSize(newSize))} ${chalk.green(`${compressRatio}%↓`)} \n`
+			}
 		})
-
-		const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
-		logContent += `\n🎉 ${chalk.green('Compress done! \n')}🚀 ${chalk.cyan('OriginSize:')} ${chalk.red(
-			computeSize(totalOldSize)
-		)} ${chalk.cyan('→ NowSize:')} ${chalk.magentaBright(computeSize(totalNewSize))} ${chalk.cyan(
-			'TotalRatio:'
-		)} ${chalk.green(`${totalCompressRatio}%↓`)}`
+		logContent += `\n🎉 ${chalk.green('Compress done! \n')}`
+		const { cache } = resolvedConfig
+		if (cache && totalNewSize === 0) {
+			logContent += `🚀 ${chalk.green('All files are read from cache')}`
+		} else {
+			const totalCompressRatio = (((totalOldSize - totalNewSize) / totalOldSize) * 100).toFixed(2)
+			logContent += `🚀 ${chalk.cyan('OriginSize:')} ${chalk.red(computeSize(totalOldSize))} ${chalk.cyan(
+				'→ NowSize:'
+			)} ${chalk.magentaBright(computeSize(totalNewSize))} ${chalk.cyan('TotalRatio:')} ${chalk.green(
+				`${totalCompressRatio}%↓`
+			)}`
+		}
 
 		const boxenConfig: BoxenOptions = {
 			padding: 1,
@@ -133,7 +138,7 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 		}
 		logger(boxen(logContent, boxenConfig))
 	} else {
-		logger(chalk.yellow('\n[vite-plugin-minipic]:There are no images or images are all read from cache'))
+		logger(chalk.yellow('\n[vite-plugin-minipic]: No images are detected in this project.'))
 	}
 }
 
@@ -153,6 +158,20 @@ const getCacheByFilePath = (filePath: string): GetCacheByFilePath => {
 }
 
 /**
+ * @description:
+ * @param {OutputBundle} bundler
+ * @param {string} filePath
+ * @param {Buffer} imgBuffer
+ */
+const generateFileByCache = (bundler: OutputBundle, filePath: string, imgBuffer: Buffer) => {
+	const { newFileName } = changeOutputBundle(bundler, filePath, imgBuffer)
+	recordsMap.set(filePath, {
+		isCache: true,
+		newFileName
+	})
+}
+
+/**
  * @description: generate imgage files.If use cache,read from ./node_modules/.cache. If not use cache, compress image files.
  * @param {OutputBundle} bundler
  * @param {string} imgFiles
@@ -164,9 +183,9 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 	const handles = imgFiles.map(async (filePath: string) => {
 		const { isUseCache, imgBuffer } = getCacheByFilePath(filePath)
 		if (isUseCache) {
-			changeOutputBundle(bundler, filePath, imgBuffer)
+			await generateFileByCache(bundler, filePath, imgBuffer)
 		} else {
-			await compressFile(filePath, bundler)
+			await generateFileByCompress(filePath, bundler)
 		}
 		compressedFileNum += 1
 		spinner.text = `${chalk.cyan(`[vite-plugin-minipic] now compressing`)} ${chalk.yellowBright(
@@ -207,12 +226,12 @@ const changeOutputBundle = (bundler: OutputBundle, filePath: string, imgBuffer: 
 }
 
 /**
- * @description: Compress image files
+ * @description: generate image files by compress
  * @param {string} filePath
  * @param {OutputBundle} bundler
  * @return {*}
  */
-const compressFile = async (filePath: string, bundler: OutputBundle) => {
+const generateFileByCompress = async (filePath: string, bundler: OutputBundle) => {
 	const source = (bundler[filePath] as OutputAsset).source
 	const ext: string = path.extname(filePath).slice(1)
 	const sharpConfig = handleSharpConfig({ ext })
@@ -278,8 +297,8 @@ export default function vitePluginMinipic(options: UserOptions): PluginOption {
 		name: 'vite-plugin-minipic',
 		enforce: 'pre',
 		apply: 'build',
-		configResolved(config: ResolvedConfig) {
-			handleResolveOptions(options, config)
+		configResolved() {
+			handleResolveOptions(options)
 		},
 		async generateBundle(_, bundler) {
 			const imgFiles: string[] = handleFilterImg(bundler)
@@ -290,9 +309,6 @@ export default function vitePluginMinipic(options: UserOptions): PluginOption {
 			spinner.stop()
 		},
 		closeBundle() {
-			if (publicDir || outputPath) {
-				// TODO: compress images in /public and index.html
-			}
 			generateLog(recordsMap)
 		}
 	}

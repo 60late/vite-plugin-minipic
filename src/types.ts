@@ -37,14 +37,16 @@ export interface SharpOption {
  * @description: output log records value
  */
 export interface RecordsValue {
-	/** Image file size after proccessed */
-	newSize: number
-	/** Original image file size */
-	oldSize: number
-	/** Image file size compressed ratio */
-	compressRatio: string
+	/** Is this record read directly from cache */
+	isCache?: boolean
 	/** New image file name after proccessed */
 	newFileName: string
+	/** Image file size after proccessed */
+	newSize?: number
+	/** Original image file size */
+	oldSize?: number
+	/** Image file size compressed ratio */
+	compressRatio?: string
 }
 
 export interface SharpConfig {

@@ -1,14 +1,14 @@
 # vite-plugin-minipic
 
 vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
-It's easy to use, and it's faaaaaaast!
+It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
 Based on [sharp](https://github.com/lovell/sharp)
 
 **English** | [中文](README.CN.md)
 
 ![example](https://img1.imgtp.com/2023/09/19/G4Dr2my3.gif)
 
-## Install
+## 📦 Install
 
 ```
 npm install vite-plugin-minipic -D
@@ -20,7 +20,7 @@ or
 yarn add vite-plugin-minipic -D
 ```
 
-## Usage
+## 💻 Usage
 
 ### Basic Usage
 
@@ -64,7 +64,7 @@ export default defineConfig({
 })
 ```
 
-## Options
+## 🔨 Options
 
 | param        | type    | default value                 | detail                                                                                                                                           |
 | ------------ | ------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -133,7 +133,6 @@ npm run vue3
 ## TODO
 
 - [x] cache function
-- [ ] public filepath compress
 
 ## License
 
