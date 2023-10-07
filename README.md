@@ -6,7 +6,7 @@ Based on [sharp](https://github.com/lovell/sharp)
 
 **English** | [中文](README.CN.md)
 
-![example](https://img1.imgtp.com/2023/09/19/G4Dr2my3.gif)
+![example](https://img1.imgtp.com/2023/10/07/WVYs4Ca8.gif)
 
 ## 📦 Install
 
