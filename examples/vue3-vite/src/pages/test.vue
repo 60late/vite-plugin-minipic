@@ -1,5 +1,5 @@
 <template>
-	<img src="@/assets/img/pic1.jpg" alt="" />
+	<img src="@/assets/img/pic1-special.jpg" alt="" />
 	<img src="@/assets/img/pic2.jpeg" alt="" />
 	<img src="@/assets/img/pic3.png" alt="" />
 	<img src="@/assets/img/pic4.webp" alt="" />

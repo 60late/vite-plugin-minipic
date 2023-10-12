@@ -18,6 +18,7 @@ import {
 	SharpConfig,
 	GetCacheByFilePath
 } from './types'
+import { hasUncaughtExceptionCaptureCallback } from 'process'
 
 let resolvedConfig: UserOptions
 const recordsMap = new Map<string, RecordsValue>()
@@ -82,16 +83,6 @@ const computeSize = partial({ base: 2, standard: 'jedec' })
  */
 const logger = (...args) => {
 	console.log(...args)
-}
-
-/**
- * @description: filter image file
- * @param {string} bundleName
- */
-const imgFilter = (bundleName: string) => {
-	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg|gif)$/i
-	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundleName)
-	return res
 }
 
 /**
@@ -255,13 +246,59 @@ const generateFileByCompress = async (filePath: string, bundler: OutputBundle) =
 }
 
 /**
+ * @description: filter image file
+ * @param {string} bundleName
+ */
+const imgFilter = (bundleName: string) => {
+	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg|gif)$/i
+	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundleName)
+	return res
+}
+
+/**
+ * @description: exclude not compressed files
+ * @param {string} bundle
+ * @return {boolean} is img need to be excluded?
+ */
+const excludeFilter = (bundle: string) => {
+	const { exclude } = resolvedConfig
+	const originImgName = getOriginImageName(bundle)
+	// If exclude is array (named exclude)
+	if (Array.isArray(exclude) && exclude.length) {
+		return !exclude.includes(originImgName)
+	}
+
+	// If exclude is regExp.
+	if (typeof exclude === 'string') {
+		const reg = new RegExp(exclude)
+		return !reg.test(originImgName)
+	}
+
+	return true
+}
+
+/**
+ * @description: get img origin name before bundle
+ * @param {string} bundle
+ * @return {string}
+ */
+const getOriginImageName = (bundle: string): string => {
+	// 'assets/pic1-special-6a812720.jpg'
+	const [file, ext] = bundle.split('.')
+	const fileNameArr: string[] = file.split('/')[1].split('-')
+	fileNameArr.pop()
+	const fileName = `${fileNameArr.join('-')}.${ext}`
+	return fileName
+}
+
+/**
  * @description: Filter image files
  * @param {OutputBundle} bundler
  */
 const handleFilterImg = (bundler: OutputBundle) => {
 	const imgFiles: string[] = []
 	Object.keys(bundler).forEach((bundle) => {
-		imgFilter(bundle) && imgFiles.push(bundle)
+		imgFilter(bundle) && excludeFilter(bundle) && imgFiles.push(bundle)
 	})
 	return imgFiles
 }

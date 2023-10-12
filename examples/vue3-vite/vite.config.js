@@ -25,7 +25,8 @@ export default defineConfig({
 				{ from: 'jpg', to: 'webp' },
 				{ from: 'jpeg', to: 'jpg' }
 			],
-			cache: true
+			cache: false,
+			exclude: ['pic-special.jpg']
 		})
 	],
 	resolve: {
