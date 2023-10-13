@@ -31,5 +31,5 @@ export const defaultOptions: UserOptions = {
 	convert: defaultConvertOptions,
 	cache: true,
 	include: [], // TODO:
-	exclude: [] // TODO:
+	exclude: []
 }

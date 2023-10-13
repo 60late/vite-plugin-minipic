@@ -18,7 +18,6 @@ import {
 	SharpConfig,
 	GetCacheByFilePath
 } from './types'
-import { hasUncaughtExceptionCaptureCallback } from 'process'
 
 let resolvedConfig: UserOptions
 const recordsMap = new Map<string, RecordsValue>()
@@ -329,7 +328,7 @@ const replaceImgName = (bundler: OutputBundle) => {
 	})
 }
 
-export default function vitePluginMinipic(options: UserOptions): PluginOption {
+export default function vitePluginMinipic(options: UserOptions = {}): PluginOption {
 	return {
 		name: 'vite-plugin-minipic',
 		enforce: 'pre',

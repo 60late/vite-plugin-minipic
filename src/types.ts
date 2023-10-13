@@ -6,15 +6,15 @@ export { OutputBundle, OutputAsset, PluginOption, ResolvedConfig }
 
 export interface UserOptions {
 	/** Sharp.js Options,for more detail options see https://sharp.pixelplumbing.com */
-	sharpOptions: SharpOption
+	sharpOptions?: SharpOption
 	/** Change image type */
-	convert: Convert[]
+	convert?: Convert[]
 	/** Use cache mode to improve compress speed.Default value:false */
-	cache: boolean
+	cache?: boolean
 	/** Include files should be processed */
-	include: string[] | string
+	include?: string[] | string
 	/** Exclude files should not be processed */
-	exclude: string[] | string
+	exclude?: string[] | string
 }
 
 export interface Convert {

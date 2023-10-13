@@ -14,10 +14,10 @@ export default defineConfig({
 		minipic({
 			sharpOptions: {
 				png: {
-					quality: 20
+					quality: 70
 				},
 				jpeg: {
-					quality: 33
+					quality: 70
 				}
 			},
 			convert: [
@@ -26,7 +26,8 @@ export default defineConfig({
 				{ from: 'jpeg', to: 'jpg' }
 			],
 			cache: false,
-			exclude: ['pic-special.jpg']
+			exclude: [],
+			include: []
 		})
 	],
 	resolve: {
