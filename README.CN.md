@@ -79,6 +79,7 @@ export default defineConfig({
 | convert      | Object                 | [convert](#convert)           | 你可以通过这个选项控制图片经过处理后的类型 `from` 是原始类型 `to` 是处理后的类型                                                                                                                                                                      |
 | cache        | Boolean                | true                          | 第一次压缩后会将已压缩文件存入磁盘中进行缓存以提高压缩速度，如果不想占用本地磁盘空间将此值设置为false，则每次都会全量压缩                                                                                                                             |
 | exclude      | `string` or `string[]` | []                            | 你可以通过通过这个选项排除不想要进行压缩的文件。1.如果值为一个字符串数组，比如`exclude:['pic1.jpg','pic2.jpg']`,那么pic1和pic2将会被排除。 2. 如果值为一个字符串，比如`exclude:'.jpg'`,那么这个值将被作为一个正则表达式，所有的.jpg文件都会被排除在外 |
+| include      | `string` or `string[]` | []                            | 你可以通过通过这个选项排除不想要进行压缩的文件。1.如果值为一个字符串数组，比如`include:['pic1.jpg','pic2.jpg']`,那么pic1和pic2将会被压缩。 2. 如果值为一个字符串，比如`include:'.jpg'`,那么这个值将被作为一个正则表达式，所有的.jpg文件都会被压缩     |
 
 ### sharpOptions
 
@@ -142,11 +143,17 @@ or
 npm run vue3
 ```
 
+## 目前支持的图片格式
+
+目前只支持 avif、jpeg、jpg、png、webp、gif 格式
+更多图片格式会在后续版本中进行支持
+
 ## 待办
 
 - [x] 缓存功能
 - [x] 排除特定不压缩的文件
 - [ ] 只对特定文件进行压缩
+- [ ] 更多图片类型支持
 
 ## 证书
 

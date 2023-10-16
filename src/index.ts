@@ -172,6 +172,7 @@ const handleGenerateImgFiles = async (bundler: OutputBundle, imgFiles: string[],
 	const totalFileNum: number = imgFiles.length
 	const handles = imgFiles.map(async (filePath: string) => {
 		const { isUseCache, imgBuffer } = getCacheByFilePath(filePath)
+		spinner.text = `${chalk.cyan(`[vite-plugin-minipic] start compressing……`)}`
 		if (isUseCache) {
 			await generateFileByCache(bundler, filePath, imgBuffer)
 		} else {
@@ -249,31 +250,37 @@ const generateFileByCompress = async (filePath: string, bundler: OutputBundle) =
  * @param {string} bundleName
  */
 const imgFilter = (bundleName: string) => {
-	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|svg|gif)$/i
+	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|gif)$/i
 	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundleName)
 	return res
 }
 
 /**
- * @description: exclude not compressed files
+ * @description: exclude or include files to compress
  * @param {string} bundle
- * @return {boolean} is img need to be excluded?
+ * @return {boolean}
  */
-const excludeFilter = (bundle: string) => {
-	const { exclude } = resolvedConfig
+const excludeAndIncludeFilter = (bundle: string) => {
+	const { exclude, include } = resolvedConfig
+	const isExclude = exclude.length
+	const isInclude = include.length
+	// If exclude and inlcude are all empty
+	if (!isExclude && !isInclude) return true
+
 	const originImgName = getOriginImageName(bundle)
-	// If exclude is array (named exclude)
-	if (Array.isArray(exclude) && exclude.length) {
-		return !exclude.includes(originImgName)
+	const target = isExclude ? exclude : include
+	let result = true
+	// If tartget is array
+	if (Array.isArray(target) && target.length) {
+		result = target.includes(originImgName)
+	}
+	// If target is regExp.
+	if (typeof target === 'string') {
+		const reg = new RegExp(target)
+		result = reg.test(originImgName)
 	}
 
-	// If exclude is regExp.
-	if (typeof exclude === 'string') {
-		const reg = new RegExp(exclude)
-		return !reg.test(originImgName)
-	}
-
-	return true
+	return isExclude ? !result : result
 }
 
 /**
@@ -297,7 +304,7 @@ const getOriginImageName = (bundle: string): string => {
 const handleFilterImg = (bundler: OutputBundle) => {
 	const imgFiles: string[] = []
 	Object.keys(bundler).forEach((bundle) => {
-		imgFilter(bundle) && excludeFilter(bundle) && imgFiles.push(bundle)
+		imgFilter(bundle) && excludeAndIncludeFilter(bundle) && imgFiles.push(bundle)
 	})
 	return imgFiles
 }

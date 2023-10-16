@@ -57,19 +57,17 @@ export default defineConfig({
 					quality: 70
 				},
 				jpeg: {
-					quality: 33
-				},
-				jpg: {
 					quality: 70
 				}
 			},
 			convert: [
-				{ from: 'png', to: 'webp' },
+				{ from: 'png', to: 'jpg' },
 				{ from: 'jpg', to: 'webp' },
 				{ from: 'jpeg', to: 'jpg' }
 			],
-			cache: true,
-			exclude: ['pic-special.jpg']
+			cache: false,
+			exclude: [],
+			include: []
 		})
 	]
 })
@@ -77,12 +75,13 @@ export default defineConfig({
 
 ## 🔨 Options
 
-| param        | type                   | default value                 | detail                                                                                                                                                                                                                                                                                   |
-| ------------ | ---------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sharpOptions | Object                 | [sharpOptions](#sharpoptions) | image compression options,the same config with sharp.js.For more detail config, see [sharp.js](https://sharp.pixelplumbing.com/api-output#jpeg).                                                                                                                                         |
-| convert      | Object                 | [convert](#convert)           | You can change image type by this option.`from` is the original image type`to` is the compressed image type                                                                                                                                                                              |
-| cache        | Boolean                | true                          | This option will speed up compression process by saving imges in the disk. Set `false` to disable this function.                                                                                                                                                                         |
-| exclude      | `string` or `string[]` | []                            | By setting this option, you can exclude some file that you don't want to compress。Set exclude as string array,like `exclude:['pic1.jpg','pic2.jpg']` to exclude specific files. If set exlude as string,like `exclude:'.jpg'`, it will be regarded as a RegExp to exlude all .jpg files |
+| param        | type                   | default value                 | detail                                                                                                                                                                                                                                                                                                                                                        |
+| ------------ | ---------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| sharpOptions | Object                 | [sharpOptions](#sharpoptions) | image compression options,the same config with sharp.js.For more detail config, see [sharp.js](https://sharp.pixelplumbing.com/api-output#jpeg).                                                                                                                                                                                                              |
+| convert      | Object                 | [convert](#convert)           | You can change image type by this option.`from` is the original image type`to` is the compressed image type                                                                                                                                                                                                                                                   |
+| cache        | Boolean                | true                          | This option will speed up compression process by saving imges in the disk. Set `false` to disable this function.                                                                                                                                                                                                                                              |
+| exclude      | `string` or `string[]` | []                            | By setting this option, you can exclude files that you don't want to compress。Set exclude as string array,like `exclude:['pic1.jpg','pic2.jpg']` to exclude specific files. If set exlude as string,like `exclude:'.jpg'`, it will be regarded as a RegExp to exlude all `.jpg` files. If `exclude` and `include` both have value, `include` will be invalid |
+| include      | `string` or `string[]` | []                            | By setting this option, you can include files that you want to compress。Set exclude as string array,like `include:['pic1.jpg','pic2.jpg']` to include specific files. If set exlude as string,like `include:'.jpg'`, it will be regarded as a RegExp to include all `.jpg` files. If `exclude` and `include` both have value, `include` will be invalid      |
 
 ### sharpOptions
 
@@ -142,11 +141,17 @@ or
 npm run vue3
 ```
 
+## Current Support image types
+
+avif、jpeg、jpg、png、webp、gif  
+more image type will be support in later version
+
 ## TODO
 
 - [x] cache function
 - [x] exclude compress file function
 - [ ] include compress file function
+- [ ] Support more image types(svg……)
 
 ## License
 
