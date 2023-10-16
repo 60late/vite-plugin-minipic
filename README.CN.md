@@ -1,10 +1,23 @@
 # vite-plugin-minipic
 
-vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀🚀！！  
-基于[sharp](https://github.com/lovell/sharp)开发  
+**中文** | [English](README.md)
+vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀🚀！! 基于[sharp](https://github.com/lovell/sharp)开发  
 ![example](https://img1.imgtp.com/2023/10/07/WVYs4Ca8.gif)
 
-**中文** | [English](README.md)
+## 为什么选择minipic?
+
+- 🚀 极快压缩速率  
+  本插件基于[sharp.js](https://github.com/lovell/sharp)，压缩速率极快。  
+  完全满足项目多图、大图压缩需求。  
+  实测40M的图片文件压缩时间只需要3秒左右，整体压缩体积可以在70%~80%以上（设备：macbook m1。压缩质量设定：75%）。
+- 💾 增量压缩/缓存控制  
+  默认开启增量压缩功能，在首次进行图片压缩时会把压缩后的图片存在本地磁盘中，后续直接读取缓存文件加快压缩速率，杜绝多次重复压缩图片
+
+- 📷 图片类型转换  
+  可以在压缩同时将图片转为其他格式
+
+- 🔎 特定图片压缩/排除  
+  可以框定压缩图片的范围，也可以对不想进行压缩的图片进行排除
 
 ## 📦 安装
 

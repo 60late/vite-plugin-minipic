@@ -1,12 +1,29 @@
 # vite-plugin-minipic
 
-vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
-It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
-Based on [sharp](https://github.com/lovell/sharp)
-
 **English** | [中文](README.CN.md)
 
+vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
+It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
+
 ![example](https://img1.imgtp.com/2023/10/07/WVYs4Ca8.gif)
+
+## Why minipic?
+
+- 🚀 Fast compress spped  
+  Based on [sharp.js](https://github.com/lovell/sharp), minipic have incredibly compresse speed.  
+  Fully satisfy multi-images/big-images requirements.  
+  By using minipic, compress 40m images will only cost 3 seconds. Compress ratio reach 70%~80%.
+
+- 💾 Cache control  
+  Minipic will start cache control by default. It will save images into the disk when compressing images for the first time.  
+  Then next time minipic will read images info directly from disk cache to speed up compression proccess.  
+  And aviod repeat compression.
+
+- 📷 Convert image types  
+  You can change image type when compressing images.
+
+- 🔎 Include/Exclude specific image types  
+  You can choose which image need to be compressed.
 
 ## 📦 Install
 
