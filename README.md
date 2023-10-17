@@ -7,9 +7,9 @@ It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
 
 ![example](https://img1.imgtp.com/2023/10/07/WVYs4Ca8.gif)
 
-## Why minipic?
+## ❓ Why minipic?
 
-- 🚀 Fast compress spped  
+- 🚀 Fast compress speed
   Based on [sharp.js](https://github.com/lovell/sharp), minipic have incredibly compresse speed.  
   Fully satisfy multi-images/big-images requirements.  
   By using minipic, compress 40m images will only cost 3 seconds. Compress ratio reach 70%~80%.
@@ -31,11 +31,7 @@ It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
 npm install vite-plugin-minipic -D
 ```
 
-or
-
-```
-yarn add vite-plugin-minipic -D
-```
+You can choose whatever pacakge manager as you like, recommend `yarn` or `pnpm`
 
 ❗❗❗ Install failed?
 
@@ -167,7 +163,7 @@ more image type will be support in later version
 
 - [x] cache function
 - [x] exclude compress file function
-- [ ] include compress file function
+- [x] include compress file function
 - [ ] Support more image types(svg……)
 
 ## License
