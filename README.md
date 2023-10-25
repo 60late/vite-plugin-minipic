@@ -9,7 +9,7 @@ It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
 
 ## ❓ Why minipic?
 
-- 🚀 Fast compress speed
+- 🚀 Fast compress speed  
   Based on [sharp.js](https://github.com/lovell/sharp), minipic have incredibly compresse speed.  
   Fully satisfy multi-images/big-images requirements.  
   By using minipic, compress 40m images will only cost 3 seconds. Compress ratio reach 70%~80%.
@@ -42,6 +42,8 @@ registry="https://registry.npm.taobao.org"
 sharp_binary_host="https://npm.taobao.org/mirrors/sharp"
 sharp_libvips_binary_host="https://npm.taobao.org/mirrors/sharp-libvips"
 ```
+
+other questions, see [QA](https://github.com/60late/vite-plugin-minipic/issues/2)
 
 ## 💻 Usage
 
@@ -134,8 +136,7 @@ default:
 convert: [
 	{ from: 'png', to: 'png' },
 	{ from: 'jpg', to: 'jpeg' },
-	{ from: 'jpeg', to: 'jpeg' },
-	{ from: 'jpg', to: 'webp' },
+	{ from: 'jpeg', to: 'webp' },
 	{ from: 'avif', to: 'avif' }
 ]
 ```

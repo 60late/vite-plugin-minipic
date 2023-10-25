@@ -1,7 +1,8 @@
 # vite-plugin-minipic
 
-**中文** | [English](README.md)
-vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀🚀！! 基于[sharp](https://github.com/lovell/sharp)开发  
+**中文** | [English](README.md)  
+vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀🚀！!  
+基于[sharp](https://github.com/lovell/sharp)开发  
 ![example](https://img1.imgtp.com/2023/10/07/WVYs4Ca8.gif)
 
 ## ❓为什么选择minipic?
@@ -21,7 +22,7 @@ vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀
 
 ## 📦 安装
 
-```
+```JS
 npm install vite-plugin-minipic -D
 ```
 
@@ -30,11 +31,13 @@ npm install vite-plugin-minipic -D
 ❗❗❗ 安装失败？  
 如果你无法安装，请在你全局或者项目目录下的.npmrc文件中加入以下配置
 
-```
+```JS
 registry="https://registry.npm.taobao.org"
 sharp_binary_host="https://npm.taobao.org/mirrors/sharp"
 sharp_libvips_binary_host="https://npm.taobao.org/mirrors/sharp-libvips"
 ```
+
+更多问题见：[常见问题及解决方法](https://github.com/60late/vite-plugin-minipic/issues/2)
 
 ## 💻 使用
 
@@ -130,8 +133,7 @@ sharpOptions: {
 convert: [
 	{ from: 'png', to: 'png' },
 	{ from: 'jpg', to: 'jpeg' },
-	{ from: 'jpeg', to: 'jpeg' },
-	{ from: 'jpg', to: 'webp' },
+	{ from: 'jpeg', to: 'webp' },
 	{ from: 'avif', to: 'avif' }
 ]
 ```
