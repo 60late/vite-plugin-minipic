@@ -3,7 +3,7 @@
 **中文** | [English](README.md)  
 vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀🚀！!  
 基于[sharp](https://github.com/lovell/sharp)开发  
-![example](https://img1.imgtp.com/2023/10/07/WVYs4Ca8.gif)
+![example](./examples/vue3-vite/src/assets/img/pic6.gif)
 
 ## ❓为什么选择minipic?
 
