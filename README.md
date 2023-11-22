@@ -5,7 +5,7 @@
 vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
 It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
 
-![example](./examples/vue3-vite/src/assets/img/pic6.gif)
+![example](./examples/vue3-vite/src/assets/img/performance.gif)
 
 ## ❓ Why minipic?
 
