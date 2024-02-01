@@ -21,7 +21,6 @@ It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
 
 - 📷 Convert image types  
   You can change image type when compressing images.
-
 - 🔎 Include/Exclude specific image types  
   You can choose which image need to be compressed.
 

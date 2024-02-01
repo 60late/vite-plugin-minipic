@@ -7,9 +7,14 @@
 		<div class="bg"></div>
 		<img src="@/assets/img/pic6.gif" alt="" />
 		<img src="@/static/picx.jpeg" alt="" />
+		<img src="/pichhh.png" alt="" />
 	</div>
 </template>
-<script setup></script>
+<script setup>
+// const getImg = () => {
+// 	return new URL(`../assets/img/pic1.jpg`, import.meta.url).href
+// }
+</script>
 <style lang="less" scoped>
 img {
 	display: block;

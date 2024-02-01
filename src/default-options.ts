@@ -2,19 +2,19 @@ import { Convert, UserOptions, SharpOption } from './types'
 
 const defaultSharpOptions: SharpOption = {
 	avif: {
-		quality: 75
+		quality: 80
 	},
 	jpeg: {
-		quality: 75
+		quality: 80
 	},
 	jpg: {
-		quality: 75
+		quality: 80
 	},
 	png: {
-		quality: 75
+		quality: 80
 	},
 	webp: {
-		quality: 75
+		quality: 80
 	},
 	gif: {}
 }
@@ -30,6 +30,6 @@ export const defaultOptions: UserOptions = {
 	sharpOptions: defaultSharpOptions,
 	convert: defaultConvertOptions,
 	cache: true,
-	include: [], // TODO:
+	include: [],
 	exclude: []
 }

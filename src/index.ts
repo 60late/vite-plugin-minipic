@@ -319,20 +319,39 @@ const replaceImgName = (bundler: OutputBundle) => {
 		const ext = bundleFileName.split('.')[1]
 		return ext === 'css' || ext === 'js'
 	})
-
-	imageNameMap.forEach((newFileName, oldFileName) => {
-		bundleFiles.map((file) => {
-			const fileExt = file.split('.')[1]
-			if (fileExt === 'css') {
-				const fileSource = bundler[file]['source']
-				bundler[file]['source'] = fileSource.replace(`${oldFileName}`, `${newFileName}`)
-			}
-			if (fileExt === 'js') {
-				const fileCode = bundler[file]['code']
-				bundler[file]['code'] = fileCode.replace(`${oldFileName}`, `${newFileName}`)
-			}
-		})
+	// TODO: using fileName like `assets/img1.png` is not a good idea. Consider refactor all the name to `img1.png` style in later version
+	const replaceMap = new Map()
+	imageNameMap.forEach((value, key) => {
+		const keyArr = key.split('/'),
+			valueArr = value.split('/')
+		const newKey = keyArr[keyArr.length - 1],
+			newVal = valueArr[valueArr.length - 1]
+		replaceMap.set(newKey, newVal)
 	})
+
+	bundleFiles.map((file) => {
+		const fileExt = file.split('.')[1]
+		if (fileExt === 'css') {
+			const fileSource: string = bundler[file]['source']
+			bundler[file]['source'] = replaceMultipleValues(fileSource, replaceMap)
+		}
+		if (fileExt === 'js') {
+			const fileCode: string = bundler[file]['code']
+			bundler[file]['code'] = replaceMultipleValues(fileCode, replaceMap)
+		}
+	})
+}
+
+/**
+ * replace multiple values in string
+ * @param inputString string need to be replaced
+ * @param replacements replace Map
+ * @returns replaced string
+ */
+const replaceMultipleValues = (inputString: string, replacements: Map<string, string>) => {
+	const regex = new RegExp(Array.from(replacements.keys()).join('|'), 'g')
+	const result = inputString.replace(regex, (match) => replacements.get(match))
+	return result
 }
 
 export default function vitePluginMinipic(options: UserOptions = {}): PluginOption {

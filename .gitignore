@@ -25,3 +25,4 @@ dist
 yarn.lock
 package-lock.json
 stats.html
+TODO.md
