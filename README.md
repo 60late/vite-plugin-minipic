@@ -164,6 +164,7 @@ more image type will be support in later version
 - [x] cache function
 - [x] exclude compress file function
 - [x] include compress file function
+- [ ] Public folder images support
 - [ ] Support more image types(svg……)
 
 ## License
