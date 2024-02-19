@@ -58,3 +58,10 @@ export interface GetCacheByFilePath {
 	isUseCache: boolean
 	imgBuffer: Buffer
 }
+
+export interface ImgInfo {
+	filePath: string
+	name: string
+	ext: string
+	extOrigin: string
+}
