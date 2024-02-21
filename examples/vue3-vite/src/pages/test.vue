@@ -1,13 +1,14 @@
 <template>
 	<div class="test">
 		<img src="@/assets/img/pic1.jpg" alt="" />
-		<!-- <img src="@/assets/img/pic2.jpeg" alt="" />
+		<img src="@/assets/img/pic2.jpeg" alt="" />
 		<img src="@/assets/img/pic3.png" alt="" />
 		<img src="@/assets/img/pic4.webp" alt="" />
 		<div class="bg"></div>
 		<img src="@/assets/img/pic6.gif" alt="" />
-		<img src="@/static/picx.jpeg" alt="" /> -->
-		<img src="/pichhh.png" alt="" />
+		<img src="@/static/picx.jpeg" alt="" />
+		<img src="/pic-include.jpg" alt="" />
+		<img src="/pic-skipped.jpeg" alt="" />
 	</div>
 </template>
 <script setup>

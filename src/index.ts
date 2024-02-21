@@ -1,8 +1,10 @@
+import fs from 'fs'
+import ora from 'ora'
+import path from 'path'
 import sharp from 'sharp'
 import chalk from 'chalk'
 import boxen from 'boxen'
-import ora from 'ora'
-import path from 'path'
+import { glob } from 'glob'
 import { partial } from 'filesize'
 import { DiskCache } from './cache'
 import { merge as deepMerge } from 'lodash-es'
@@ -19,20 +21,29 @@ import {
 	ImgInfo,
 	ResolvedConfig
 } from './types'
-import { glob } from 'glob'
-import fs from 'fs'
 
+/** Common spinner */
 const spinner = ora()
-/** resolved config */
-let resolvedConfig: UserOptions
-/** if use cache mode,compressed files will be stored in the disk */
-const diskCache = new DiskCache()
-/** compressed file records */
-const recordsMap = new Map<string, RecordsValue>()
 
-let outputDir: string = ''
+/** Resolved config */
+let resolvedConfig: UserOptions
+
+/** Public folder directory. */
 let publicDir: string = ''
 
+/** Output directory.Like `dist` */
+let outputDir: string = ''
+
+/** Current process step */
+let curStep: 'public' | 'bundle' = 'public'
+
+/** If use cache mode,compressed files will be stored in the disk */
+const diskCache = new DiskCache()
+
+/** Compressed file records */
+const recordsMap = new Map<string, RecordsValue>()
+
+/** Sharp.js compress method type during compressing .Map[oldExt,newExt] */
 const compressMethodMap = new Map([
 	['jpeg', 'jpeg'],
 	['png', 'png'],
@@ -42,6 +53,7 @@ const compressMethodMap = new Map([
 	['gif', 'gif']
 ])
 
+/** Extension type before and after convertion .Map[oldExt,newExt] */
 const outputExtMap = new Map([
 	['jpeg', 'jpeg'],
 	['png', 'png'],
@@ -51,13 +63,11 @@ const outputExtMap = new Map([
 	['gif', 'gif']
 ])
 
-/**
- * @description: Map[oldFileName,newFileName]
- */
+/** Filenames before and after convertion .Map[oldFileName,newFileName] */
 const imageNameMap = new Map<string, string>([])
 
 /**
- * @description: merge user option and default option
+ * merge user option and default option
  * @param {UserOptions} userOptions
  */
 const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) => {
@@ -68,28 +78,26 @@ const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) 
 }
 
 /**
- * @description: sharp.js only have jpeg() function,dont have jpg() function. So need to special process
+ * Sharp.js only have jpeg() function,dont have jpg() function. So need to special process
  */
 const setCompressMethodMap = () => {
 	const { convert } = resolvedConfig
-	convert.map((item) => {
+	convert.forEach((item) => {
 		const { from, to } = item
 		compressMethodMap.get(from) && compressMethodMap.delete(from)
 		// sharp.js only have .jpeg() function
 		to === 'jpg' ? compressMethodMap.set(from, 'jpeg') : compressMethodMap.set(from, to)
-		// TODO: i have to say, these code looks like shit,i will fix it later
-		outputExtMap.get(from) && outputExtMap.delete(from)
 		outputExtMap.set(from, to)
 	})
 }
 
 /**
- * @description: compute fileSize
+ * Compute fileSize
  */
 const computeSize = partial({ base: 2, standard: 'jedec' })
 
 /**
- * @description: console.log
+ * A beffer display for console.log
  * @param {array} args
  */
 const logger = (...args) => {
@@ -97,10 +105,9 @@ const logger = (...args) => {
 }
 
 /**
- * @description: generate output log
+ * Generate output log
  * @param {Map<string, RecordsValue>} recordsMap
  */
-
 const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 	if (recordsMap.size) {
 		let totalOldSize = 0
@@ -111,6 +118,10 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 			const { isCache, oldSize, newSize, compressRatio, newFileName } = record
 			if (isCache) {
 				logContent += `${chalk.cyan(fileName)} → ${chalk.cyan(newFileName)}  ${chalk.green('(Read from cache)')} \n`
+			} else if (newSize > oldSize) {
+				logContent += `${chalk.cyan(fileName)} → ${chalk.cyan(newFileName)}  ${chalk.red(
+					computeSize(oldSize)
+				)} → ${chalk.magentaBright(computeSize(newSize))} ${chalk.yellow(`skipped`)} \n`
 			} else {
 				totalOldSize += oldSize
 				totalNewSize += newSize
@@ -145,51 +156,54 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 }
 
 /**
- * @description:
+ * Generate file from cache
  * @param {OutputBundle} bundler
  * @param {string} filePath
  * @param {Buffer} imgBuffer
  */
 const generateFileByCache = (imgInfo: ImgInfo) => {
-	const imgBuffer = diskCache.get(imgInfo.name)
-	recordsMap.set(imgInfo.filePath, {
+	const imgBuffer = diskCache.get(imgInfo.newFileName)
+	recordsMap.set(imgInfo.oldFileName, {
 		isCache: true,
-		newFileName: imgInfo.name
+		newFileName: imgInfo.newFileName
 	})
 
 	return imgBuffer
 }
 
 /**
- * get img info
+ * Get image info
  * @return {imgInfo}
  */
 const getImgInfo = (filePath: string) => {
-	const [name, extOrigin] = filePath.split('.')
-	const ext = outputExtMap.get(extOrigin)
-
+	const [oldName, oldExt] = filePath.split('.')
+	const newExt = outputExtMap.get(oldExt)
+	const oldFileName = `${oldName.replace(publicDir + path.sep, '')}.${oldExt}`
+	const newFileName = `${oldName.replace(publicDir + path.sep, '')}.${newExt}`
 	return {
 		filePath,
-		name: `${name}.${ext}`,
-		ext,
-		extOrigin
+		oldFileName,
+		newFileName,
+		oldExt,
+		newExt
 	}
 }
 
 /**
- * @description: generate imgage files.If use cache,read from ./node_modules/.cache. If not use cache, compress image files.
+ * Generate image files.
+ * Process images from bundle and public directory.
+ * If use cache,read from ./node_modules/.cache. If not use cache, compress image files.
  * @param {OutputAsset} bundler
  * @param {string} imgFiles
  */
 const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle) => {
 	let compressedFileNum: number = 0
 	const totalFileNum: number = imgFiles.length
-	spinner.text = `${chalk.cyan(`[vite-plugin-minipic] start compressing……`)}`
 	const handles = imgFiles.map(async (filePath: string) => {
 		let imgBuffer = Buffer.from('')
 		let source: Uint8Array | string = Buffer.from('')
 		const imgInfo = getImgInfo(filePath)
-		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(imgInfo.name)
+		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(imgInfo.newFileName)
 
 		if (bundler) {
 			source = (bundler[filePath] as OutputAsset).source
@@ -209,12 +223,9 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 		)} (${compressedFileNum}/${totalFileNum})`
 
 		if (bundler) {
-			changeOutputBundle(bundler, imgInfo, imgBuffer)
+			changeBundleOutput(imgInfo, imgBuffer, bundler)
 		} else {
-			imgInfo.name = imgInfo.name.replace(publicDir + path.sep, '')
-			const outputFilePath = path.join(outputDir, imgInfo.name)
-			await fs.writeFileSync(outputFilePath, imgBuffer)
-			imageNameMap.set(filePath, imgInfo.name)
+			changePublicOutput(imgInfo, imgBuffer)
 		}
 	})
 	await Promise.all(handles)
@@ -222,7 +233,7 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 }
 
 /**
- * @description:  special config for sharp. eg: .gif images need set animated=true,otherwise you can only get the first frame
+ * Special config for sharp. eg: .gif images need set animated=true,otherwise you can only get the first frame
  * @return {*} config
  */
 const handleSharpConfig = ({ ext }: SharpConfig) => {
@@ -234,70 +245,84 @@ const handleSharpConfig = ({ ext }: SharpConfig) => {
 }
 
 /**
- * @description: Change final output bundle. Mainly change `source` and `fileName`
+ * Change final output bundle. Mainly change `source` and `fileName`
  * @param {OutputAsset} bundler
  * @param {string} filePath
  * @param {Buffer} imgBuffer
  */
-const changeOutputBundle = (bundler: OutputBundle, imgInfo: ImgInfo, imgBuffer: Buffer) => {
-	const { filePath, name } = imgInfo
-	imageNameMap.set(filePath, name)
-	bundler[filePath].fileName = name
+const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: OutputBundle) => {
+	const { oldFileName, newFileName, filePath } = imgInfo
+	imageNameMap.set(oldFileName, newFileName)
+	bundler[filePath].fileName = newFileName
 	;(bundler[filePath] as OutputAsset).source = imgBuffer
 }
 
 /**
- * @description: generate image files by compress
+ * Change output from public directory. Mainly change `source` and `fileName`
+ * @param {OutputAsset} bundler
+ * @param {string} filePath
+ * @param {Buffer} imgBuffer
+ */
+const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
+	const oldFilePath = path.join(outputDir, imgInfo.oldFileName)
+	const newFilePath = path.join(outputDir, imgInfo.newFileName)
+	if (imgInfo.newExt !== imgInfo.oldExt) {
+		fs.writeFileSync(newFilePath, imgBuffer)
+		fs.unlinkSync(oldFilePath)
+	}
+	imageNameMap.set(imgInfo.oldFileName, imgInfo.newFileName)
+}
+
+/**
+ * Generate image files by compress
  * @param {string} filePath
  * @param {OutputBundle} bundler
  * @return {*}
  */
 const generateFileByCompress = async (imgInfo: ImgInfo, source: Uint8Array | string) => {
-	const { filePath, name, ext } = imgInfo
-	const sharpConfig = handleSharpConfig({ ext })
-	const compressOption = resolvedConfig.sharpOptions[ext]
-	const imgBuffer: Buffer = await sharp(source, sharpConfig)[compressMethodMap.get(ext)](compressOption).toBuffer()
+	const { oldFileName, newFileName, newExt } = imgInfo
+	const sharpConfig = handleSharpConfig({ ext: newExt })
+	const compressOption = resolvedConfig.sharpOptions[newExt]
+	const imgBuffer: Buffer = await sharp(source, sharpConfig)[compressMethodMap.get(newExt)](compressOption).toBuffer()
 	const oldSize = (source as Uint8Array).byteLength
 	const newSize = imgBuffer.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
 
 	// Sometimes .png images will be larger after sharp.js processed,so only convert compressed files.
-	if (newSize < oldSize) {
-		diskCache.set(name, imgBuffer)
-		recordsMap.set(filePath, {
-			newSize,
-			oldSize,
-			compressRatio,
-			newFileName: name
-		})
-	}
+	diskCache.set(newFileName, imgBuffer)
+	recordsMap.set(oldFileName, {
+		newSize,
+		oldSize,
+		compressRatio,
+		newFileName
+	})
 
 	return imgBuffer
 }
 
 /**
- * @description: filter image file
- * @param {string} bundleName
+ * Filter image file
+ * @param {string} fileName
  */
-const imgFilter = (bundleName: string) => {
+const imgFilter = (fileName: string) => {
 	const imgReg = /\.(png|jpeg|jpg|webp|wb2|avif|gif)$/i
-	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(bundleName)
+	const res = createFilter(imgReg, [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/])(fileName)
 	return res
 }
 
 /**
- * @description: exclude or include files to compress
- * @param {string} bundle
+ * Exclude or include files to compress
+ * @param {string} fileName
  * @return {boolean}
  */
-const excludeAndIncludeFilter = (bundle: string) => {
+const excludeAndIncludeFilter = (fileName: string) => {
 	const { exclude, include } = resolvedConfig
 	const isExclude = exclude.length
 	const isInclude = include.length
 	// If exclude and inlcude are all empty
 	if (!isExclude && !isInclude) return true
 
-	const originImgName = getOriginImageName(bundle)
+	const originImgName = getOriginImageName(fileName)
 	const target = isExclude ? exclude : include
 	let result = true
 	// If tartget is array
@@ -314,33 +339,40 @@ const excludeAndIncludeFilter = (bundle: string) => {
 }
 
 /**
- * @description: get img origin name before bundle
- * @param {string} bundle
+ * Get img origin name before bundle
+ * @param {string} fileName
  * @return {string}
  */
-const getOriginImageName = (bundle: string): string => {
-	// 'assets/pic1-special-6a812720.jpg'
-	const [file, ext] = bundle.split('.')
-	const fileNameArr: string[] = file.split('/')[1].split('-')
-	fileNameArr.pop()
-	const fileName = `${fileNameArr.join('-')}.${ext}`
-	return fileName
+const getOriginImageName = (fileName: string): string => {
+	// 'assets/pic1-special-6a812720.jpg' or 'pich-special.png'
+	const [name, ext] = fileName.split('.')
+	const nameArr = name.split('/')
+	const fileNameArr: string[] = nameArr[nameArr.length - 1].split('-')
+	// if is during bundle process,vite will add hash in file names,it's not what we want
+	curStep === 'bundle' && fileNameArr.pop()
+	const purFileName = `${fileNameArr.join('-')}.${ext}`
+	return purFileName
 }
 
 /**
- * @description: Filter image files
- * @param {OutputBundle} bundler
+ * Filter image files
+ * @param {OutputBundle | string[]} source
  */
-const handleFilterImg = (bundler: OutputBundle) => {
+const handleFilterImg = (source: OutputBundle | string[]) => {
 	const imgFiles: string[] = []
-	Object.keys(bundler).forEach((bundle) => {
-		imgFilter(bundle) && excludeAndIncludeFilter(bundle) && imgFiles.push(bundle)
+
+	if (!Array.isArray(source)) {
+		source = Object.keys(source)
+	}
+
+	source.forEach((fileName: string) => {
+		imgFilter(fileName) && excludeAndIncludeFilter(fileName) && imgFiles.push(fileName)
 	})
 	return imgFiles
 }
 
 /**
- * @description: replace image name in .css and .js files
+ * Replace image name in .css and .js files
  * @param {OutputBundle} bundler
  */
 const replaceImgName = (bundler: OutputBundle) => {
@@ -358,7 +390,7 @@ const replaceImgName = (bundler: OutputBundle) => {
 		replaceMap.set(newKey, newVal)
 	})
 
-	bundleFiles.map((file) => {
+	bundleFiles.forEach((file) => {
 		const fileExt = file.split('.')[1]
 		if (fileExt === 'css') {
 			const fileSource: string = bundler[file]['source']
@@ -372,7 +404,7 @@ const replaceImgName = (bundler: OutputBundle) => {
 }
 
 /**
- * replace multiple values in string
+ * Replace multiple values in string
  * @param inputString string need to be replaced
  * @param replacements replace Map
  * @returns replaced string
@@ -384,19 +416,24 @@ const replaceMultipleValues = (inputString: string, replacements: Map<string, st
 }
 
 /**
- * handle generate bundle
- * @return {*}
+ * Handle generate bundle files
  */
 const handleGenerateBundle = async (bundler) => {
+	curStep = 'bundle'
 	const imgFiles: string[] = handleFilterImg(bundler)
 	if (!imgFiles.length) return
 	await handleGenerateImgFiles(imgFiles, bundler)
 }
 
+/**
+ * Handle generate public image files
+ */
 const handleGeneratePublic = async () => {
+	curStep = 'public'
 	const publicFiles = await glob(`${publicDir}/**/*.{png,jpg,jpeg,gif,webp,avif}`)
-	if (!publicFiles.length) return
-	await handleGenerateImgFiles(publicFiles)
+	const imgFiles = handleFilterImg(publicFiles)
+	if (!imgFiles.length) return
+	await handleGenerateImgFiles(imgFiles)
 }
 
 export default function vitePluginMinipic(options: UserOptions = {}): PluginOption {
@@ -409,6 +446,7 @@ export default function vitePluginMinipic(options: UserOptions = {}): PluginOpti
 		},
 		async generateBundle(_, bundler) {
 			spinner.start()
+			spinner.text = `${chalk.cyan(`[vite-plugin-minipic] start compressing……`)}`
 			await handleGeneratePublic()
 			await handleGenerateBundle(bundler)
 			spinner.stop()
