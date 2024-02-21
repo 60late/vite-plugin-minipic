@@ -287,7 +287,6 @@ const generateFileByCompress = async (imgInfo: ImgInfo, source: Uint8Array | str
 	const oldSize = (source as Uint8Array).byteLength
 	const newSize = imgBuffer.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
-
 	// Sometimes .png images will be larger after sharp.js processed,so only convert compressed files.
 	diskCache.set(newFileName, imgBuffer)
 	recordsMap.set(oldFileName, {
@@ -346,7 +345,7 @@ const excludeAndIncludeFilter = (fileName: string) => {
 const getOriginImageName = (fileName: string): string => {
 	// 'assets/pic1-special-6a812720.jpg' or 'pich-special.png'
 	const [name, ext] = fileName.split('.')
-	const nameArr = name.split('/')
+	const nameArr = name.split(path.sep)
 	const fileNameArr: string[] = nameArr[nameArr.length - 1].split('-')
 	// if is during bundle process,vite will add hash in file names,it's not what we want
 	curStep === 'bundle' && fileNameArr.pop()
@@ -383,8 +382,8 @@ const replaceImgName = (bundler: OutputBundle) => {
 	})
 	const replaceMap = new Map()
 	imageNameMap.forEach((value, key) => {
-		const keyArr = key.split('/'),
-			valueArr = value.split('/')
+		const keyArr = key.split(path.sep),
+			valueArr = value.split(path.sep)
 		const newKey = keyArr[keyArr.length - 1],
 			newVal = valueArr[valueArr.length - 1]
 		replaceMap.set(newKey, newVal)

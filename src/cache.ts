@@ -66,7 +66,7 @@ export class DiskCache {
 	 * @return {string} filePath
 	 */
 	getPureFilePath(fileName: string): string {
-		const fileNameArry = fileName.split('/')
+		const fileNameArry = fileName.split(path.sep)
 		const pureFileName = fileNameArry[fileNameArry.length - 1]
 		const filePath = path.join(cacheDirectory, pureFileName)
 		return filePath
