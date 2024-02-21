@@ -20,6 +20,9 @@ vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀
 - 🔎 特定图片压缩/排除  
   可以框定压缩图片的范围，也可以对不想进行压缩的图片进行排除
 
+- 📂 Public文件夹压缩支持 (Version≥1.1)
+  支持压缩public文件夹下的图片
+
 ## 📦 安装
 
 ```JS
@@ -32,7 +35,7 @@ npm install vite-plugin-minipic -D
 如果你无法安装，请在你全局或者项目目录下的.npmrc文件中加入以下配置
 
 ```JS
-registry="https://registry.npm.taobao.org"
+registry="https://registry.npmmirror.com"
 sharp_binary_host="https://npm.taobao.org/mirrors/sharp"
 sharp_libvips_binary_host="https://npm.taobao.org/mirrors/sharp-libvips"
 ```
@@ -165,7 +168,7 @@ npm run vue3
 - [x] 缓存功能
 - [x] 排除特定不压缩的文件
 - [x] 只对特定文件进行压缩
-- [ ] 支持public文件夹下的压缩
+- [x] 支持public文件夹内容压缩(version>1.1)
 - [ ] 更多图片类型支持
 
 ## 证书

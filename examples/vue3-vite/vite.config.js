@@ -22,11 +22,10 @@ export default defineConfig({
 			},
 			convert: [
 				{ from: 'png', to: 'webp' },
-				{ from: 'jpg', to: 'webp' },
-				{ from: 'jpeg', to: 'jpg' }
+				{ from: 'jpg', to: 'webp' }
 			],
 			cache: false,
-			exclude: [],
+			exclude: ['pic-exclude.png'],
 			include: []
 		})
 	],

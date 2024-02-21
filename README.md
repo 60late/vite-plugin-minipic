@@ -23,6 +23,8 @@ It's easy to use, and it's faaaaaaast 🚀🚀🚀🚀!
   You can change image type when compressing images.
 - 🔎 Include/Exclude specific image types  
   You can choose which image need to be compressed.
+- 📂 Public folder support (Version≥1.1)
+  Support compress images in public folder.
 
 ## 📦 Install
 
@@ -37,7 +39,7 @@ You can choose whatever pacakge manager as you like, recommend `yarn` or `pnpm`
 If you can't install, add following config in your `.npmrc` file.
 
 ```
-registry="https://registry.npm.taobao.org"
+registry="https://registry.npmmirror.com"
 sharp_binary_host="https://npm.taobao.org/mirrors/sharp"
 sharp_libvips_binary_host="https://npm.taobao.org/mirrors/sharp-libvips"
 ```
@@ -164,7 +166,7 @@ more image type will be support in later version
 - [x] cache function
 - [x] exclude compress file function
 - [x] include compress file function
-- [ ] Public folder images support
+- [x] Public folder images support(version>1.1)
 - [ ] Support more image types(svg……)
 
 ## License

@@ -34,7 +34,7 @@ export interface SharpOption {
 }
 
 /**
- * @description: output log records value
+ * output log records value
  */
 export interface RecordsValue {
 	/** Is this record read directly from cache */
@@ -55,6 +55,21 @@ export interface SharpConfig {
 }
 
 export interface GetCacheByFilePath {
+	/** Is use cache from ./node_modules/.cache */
 	isUseCache: boolean
+	/** Image buffer data */
 	imgBuffer: Buffer
+}
+
+export interface ImgInfo {
+	/** image origin filePath */
+	filePath: string
+	/** image file name before convert */
+	oldFileName: string
+	/** image file name after convert */
+	newFileName: string
+	/** image ext type before convert */
+	oldExt: string
+	/** image ext type after convert */
+	newExt: string
 }
