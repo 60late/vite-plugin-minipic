@@ -19,7 +19,8 @@ import {
 	RecordsValue,
 	SharpConfig,
 	ImgInfo,
-	ResolvedConfig
+	ResolvedConfig,
+	FilePathInfo
 } from './types'
 
 /** Common spinner */
@@ -65,6 +66,23 @@ const outputExtMap = new Map([
 
 /** Filenames before and after convertion .Map[oldFileName,newFileName] */
 const imageNameMap = new Map<string, string>([])
+
+/**
+ * Get multiple file path info
+ * 1. File path without extension like "/a/b/image"
+ * 2. File extension without dot like "jpg"
+ * @param {string} filePath
+ * @return {FilePathInfo}
+ */
+const getPathInfo = (filePath: string): FilePathInfo => {
+	const pureExt = path.extname(filePath).slice(1)
+	const purePath = filePath.replace(new RegExp(`.${pureExt}$`), '')
+
+	return {
+		pureExt,
+		purePath
+	}
+}
 
 /**
  * merge user option and default option
@@ -176,7 +194,7 @@ const generateFileByCache = (imgInfo: ImgInfo) => {
  * @return {imgInfo}
  */
 const getImgInfo = (filePath: string) => {
-	const [oldName, oldExt] = filePath.split('.')
+	const { purePath: oldName, pureExt: oldExt } = getPathInfo(filePath)
 	const newExt = outputExtMap.get(oldExt)
 	const oldFileName = `${oldName.replace(publicDir + path.sep, '')}.${oldExt}`
 	const newFileName = `${oldName.replace(publicDir + path.sep, '')}.${newExt}`
@@ -344,7 +362,7 @@ const excludeAndIncludeFilter = (fileName: string) => {
  */
 const getOriginImageName = (fileName: string): string => {
 	// 'assets/pic1-special-6a812720.jpg' or 'pich-special.png'
-	const [name, ext] = fileName.split('.')
+	const { purePath: name, pureExt: ext } = getPathInfo(fileName)
 	const nameArr = name.split(path.sep)
 	const fileNameArr: string[] = nameArr[nameArr.length - 1].split('-')
 	// if is during bundle process,vite will add hash in file names,it's not what we want
@@ -377,7 +395,7 @@ const handleFilterImg = (source: OutputBundle | string[]) => {
 const replaceImgName = (bundler: OutputBundle) => {
 	// only need replace image names in .css and .js files
 	const bundleFiles: string[] = Object.keys(bundler).filter((bundleFileName) => {
-		const ext = bundleFileName.split('.')[1]
+		const { pureExt: ext } = getPathInfo(bundleFileName)
 		return ext === 'css' || ext === 'js'
 	})
 	const replaceMap = new Map()
@@ -390,7 +408,7 @@ const replaceImgName = (bundler: OutputBundle) => {
 	})
 
 	bundleFiles.forEach((file) => {
-		const fileExt = file.split('.')[1]
+		const { pureExt: fileExt } = getPathInfo(file)
 		if (fileExt === 'css') {
 			const fileSource: string = bundler[file]['source']
 			bundler[file]['source'] = replaceMultipleValues(fileSource, replaceMap)

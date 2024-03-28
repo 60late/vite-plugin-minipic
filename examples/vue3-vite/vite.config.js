@@ -46,5 +46,9 @@ export default defineConfig({
 		port: 1234,
 		open: true,
 		proxy: {}
+	},
+	build: {
+		// add sourcemap situation test
+		sourcemap: true
 	}
 })

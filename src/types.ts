@@ -73,3 +73,10 @@ export interface ImgInfo {
 	/** image ext type after convert */
 	newExt: string
 }
+
+export interface FilePathInfo {
+	/** File path with out ext. like 'src/assets/images/test' */
+	purePath: string
+	/** File pur ext. like 'jpg' */
+	pureExt: string
+}
