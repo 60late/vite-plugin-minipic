@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-minipic",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "vite-plugin-minipic is a helpful tool to compress images in morden vite project.",
 	"author": "60late",
 	"main": "dist/index.js",
@@ -18,7 +18,8 @@
 		"dev": "pnpm build --watch --ignore-watch examples",
 		"build": "tsup src/index.ts --dts --format cjs,esm",
 		"release": "bumpp && npm publish",
-		"vue3": "cd examples/vue3-vite && pnpm build"
+		"vue3": "cd examples/vue3-vite && pnpm build",
+		"common": "cd examples/vue3-vite-commonjs && pnpm build"
 	},
 	"devDependencies": {
 		"@types/node": "^20.4.10",
