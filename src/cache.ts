@@ -47,6 +47,8 @@ export class DiskCache {
 	 */
 	set(fileName: string, imgBuffer: Buffer) {
 		const filePath = this.getPureFilePath(fileName)
+		const dirPath = path.dirname(filePath)
+		this.directoryGuard(dirPath)
 		fs.writeFileSync(filePath, imgBuffer)
 	}
 
