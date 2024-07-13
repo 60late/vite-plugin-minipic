@@ -174,6 +174,19 @@ const generateLog = (recordsMap: Map<string, RecordsValue>) => {
 }
 
 /**
+ * Write file to disk, ensure directory exist
+ * @param {string} filePath
+ * @param {Buffer} imgBuffer
+ */
+const safetyWriteFile = (filePath: string, imgBuffer: Buffer) => {
+	const dirPath = path.dirname(filePath)
+	if (!fs.existsSync(dirPath)) {
+		fs.mkdirSync(dirPath, { recursive: true })
+	}
+	fs.writeFileSync(filePath, imgBuffer)
+}
+
+/**
  * Generate file from cache
  * @param {OutputBundle} bundler
  * @param {string} filePath
@@ -285,7 +298,7 @@ const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
 	const oldFilePath = path.join(outputDir, imgInfo.oldFileName)
 	const newFilePath = path.join(outputDir, imgInfo.newFileName)
 	if (imgInfo.newExt !== imgInfo.oldExt) {
-		fs.writeFileSync(newFilePath, imgBuffer)
+		safetyWriteFile(newFilePath, imgBuffer)
 		fs.unlinkSync(oldFilePath)
 	}
 	imageNameMap.set(imgInfo.oldFileName, imgInfo.newFileName)

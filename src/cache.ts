@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-const cacheDirectory = path.join(process.cwd(), 'node_modules', '.cache')
+const cacheDirectory = path.join(process.cwd(), 'node_modules', '.cache', 'minipic')
 
 export class DiskCache {
 	constructor() {
@@ -58,7 +58,7 @@ export class DiskCache {
 	 */
 	directoryGuard(directory: string) {
 		if (!fs.existsSync(directory)) {
-			fs.mkdirSync(directory)
+			fs.mkdirSync(directory, { recursive: true })
 		}
 	}
 
