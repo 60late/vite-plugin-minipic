@@ -168,6 +168,7 @@ more image type will be support in later version
 - [x] include compress file function
 - [x] Public folder images support(version>1.1)
 - [ ] Support more image types(svg……)
+- [ ] Exlcude and include function in directory level.
 
 ## License
 
