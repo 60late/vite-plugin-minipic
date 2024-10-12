@@ -440,6 +440,7 @@ const replaceImgName = (bundler: OutputBundle) => {
  * @returns replaced string
  */
 const replaceMultipleValues = (inputString: string, replacements: Map<string, string>) => {
+  if(!inputString) return;
 	const regex = new RegExp(Array.from(replacements.keys()).join('|'), 'g')
 	const result = inputString.replace(regex, (match) => replacements.get(match))
 	return result
