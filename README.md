@@ -40,8 +40,8 @@ If you can't install, add following config in your `.npmrc` file.
 
 ```
 registry="https://registry.npmmirror.com"
-sharp_binary_host="https://npm.taobao.org/mirrors/sharp"
-sharp_libvips_binary_host="https://npm.taobao.org/mirrors/sharp-libvips"
+sharp_binary_host = "https://registry.npmmirror.com/-/binary/sharp"
+sharp_libvips_binary_host = "https://registry.npmmirror.com/-/binary/sharp-libvips"
 ```
 
 other questions, see [QA](https://github.com/60late/vite-plugin-minipic/issues/2)
