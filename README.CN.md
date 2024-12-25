@@ -36,8 +36,8 @@ npm install vite-plugin-minipic -D
 
 ```JS
 registry="https://registry.npmmirror.com"
-sharp_binary_host = "https://registry.npmmirror.com/-/binary/sharp"
-sharp_libvips_binary_host = "https://registry.npmmirror.com/-/binary/sharp-libvips"
+sharp_binary_host="https://registry.npmmirror.com/-/binary/sharp"
+sharp_libvips_binary_host="https://registry.npmmirror.com/-/binary/sharp-libvips"
 ```
 
 更多问题见：[常见问题及解决方法](https://github.com/60late/vite-plugin-minipic/issues/2)
