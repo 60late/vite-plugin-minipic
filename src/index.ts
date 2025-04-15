@@ -214,7 +214,6 @@ const generateFileByCache = (imgInfo: ImgInfo) => {
  */
 const generateCacheFileName = (imgInfo: ImgInfo, compressOption: SharpOption) => {
 	const { newFileName, newExt } = imgInfo
-	console.log('Hash:',`${newFileName}${JSON.stringify(compressOption)}`);
 	
 	const cacheName = createHash('sha256')
 		.update(`${newFileName}${JSON.stringify(compressOption)}`)
