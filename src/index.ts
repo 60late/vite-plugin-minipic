@@ -11,6 +11,7 @@ import { merge as deepMerge } from 'lodash-es'
 import { createFilter } from '@rollup/pluginutils'
 import { defaultOptions } from './default-options'
 import type { Options as BoxenOptions } from 'boxen'
+import { createHash } from 'crypto';
 import {
 	PluginOption,
 	OutputBundle,
@@ -20,7 +21,8 @@ import {
 	SharpConfig,
 	ImgInfo,
 	ResolvedConfig,
-	FilePathInfo
+	FilePathInfo,
+	SharpOption
 } from './types'
 
 /** Common spinner */
@@ -193,13 +195,31 @@ const safetyWriteFile = (filePath: string, imgBuffer: Buffer) => {
  * @param {Buffer} imgBuffer
  */
 const generateFileByCache = (imgInfo: ImgInfo) => {
-	const imgBuffer = diskCache.get(imgInfo.newFileName)
+	const cacheFileName = generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt])
+	const imgBuffer = diskCache.get(cacheFileName)
 	recordsMap.set(imgInfo.oldFileName, {
 		isCache: true,
 		newFileName: imgInfo.newFileName
 	})
 
 	return imgBuffer
+}
+
+/**
+ * Generate cache file name by image info and compress option, 
+ * avoid abuse cache file with old compressOption
+ * @param {ImgInfo} imgInfo
+ * @param {SharpOption} compressOption
+ * @return {string}
+ */
+const generateCacheFileName = (imgInfo: ImgInfo, compressOption: SharpOption) => {
+	const { newFileName, newExt } = imgInfo
+	console.log('Hash:',`${newFileName}${JSON.stringify(compressOption)}`);
+	
+	const cacheName = createHash('sha256')
+		.update(`${newFileName}${JSON.stringify(compressOption)}`)
+		.digest('hex') + "." + newExt;
+	return cacheName
 }
 
 /**
@@ -231,10 +251,12 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 	let compressedFileNum: number = 0
 	const totalFileNum: number = imgFiles.length
 	const handles = imgFiles.map(async (filePath: string) => {
-		let imgBuffer = Buffer.from('')
+		let imgBuffer: Buffer<ArrayBufferLike> = Buffer.from('')
 		let source: Uint8Array | string = Buffer.from('')
 		const imgInfo = getImgInfo(filePath)
-		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(imgInfo.newFileName)
+
+		const cacheFileName = generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt])
+		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(cacheFileName)
 
 		if (bundler) {
 			source = (bundler[filePath] as OutputAsset).source
@@ -319,7 +341,7 @@ const generateFileByCompress = async (imgInfo: ImgInfo, source: Uint8Array | str
 	const newSize = imgBuffer.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
 	// Sometimes .png images will be larger after sharp.js processed,so only convert compressed files.
-	diskCache.set(newFileName, imgBuffer)
+	diskCache.set(generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt]), imgBuffer)
 	recordsMap.set(oldFileName, {
 		newSize,
 		oldSize,
@@ -440,7 +462,7 @@ const replaceImgName = (bundler: OutputBundle) => {
  * @returns replaced string
  */
 const replaceMultipleValues = (inputString: string, replacements: Map<string, string>) => {
-  if(!inputString) return;
+	if (!inputString) return;
 	const regex = new RegExp(Array.from(replacements.keys()).join('|'), 'g')
 	const result = inputString.replace(regex, (match) => replacements.get(match))
 	return result
