@@ -11,7 +11,7 @@ import { merge as deepMerge } from 'lodash-es'
 import { createFilter } from '@rollup/pluginutils'
 import { defaultOptions } from './default-options'
 import type { Options as BoxenOptions } from 'boxen'
-import { createHash } from 'crypto';
+import { createHash } from 'crypto'
 import {
 	PluginOption,
 	OutputBundle,
@@ -185,7 +185,7 @@ const safetyWriteFile = (filePath: string, imgBuffer: Buffer) => {
 	if (!fs.existsSync(dirPath)) {
 		fs.mkdirSync(dirPath, { recursive: true })
 	}
-	fs.writeFileSync(filePath, imgBuffer)
+	fs.writeFileSync(filePath, new Uint8Array(imgBuffer))
 }
 
 /**
@@ -206,7 +206,7 @@ const generateFileByCache = (imgInfo: ImgInfo) => {
 }
 
 /**
- * Generate cache file name by image info and compress option, 
+ * Generate cache file name by image info and compress option,
  * avoid abuse cache file with old compressOption
  * @param {ImgInfo} imgInfo
  * @param {SharpOption} compressOption
@@ -214,10 +214,13 @@ const generateFileByCache = (imgInfo: ImgInfo) => {
  */
 const generateCacheFileName = (imgInfo: ImgInfo, compressOption: SharpOption) => {
 	const { newFileName, newExt } = imgInfo
-	
-	const cacheName = createHash('sha256')
-		.update(`${newFileName}${JSON.stringify(compressOption)}`)
-		.digest('hex') + "." + newExt;
+
+	const cacheName =
+		createHash('sha256')
+			.update(`${newFileName}${JSON.stringify(compressOption)}`)
+			.digest('hex') +
+		'.' +
+		newExt
 	return cacheName
 }
 
@@ -250,8 +253,8 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 	let compressedFileNum: number = 0
 	const totalFileNum: number = imgFiles.length
 	const handles = imgFiles.map(async (filePath: string) => {
-		let imgBuffer: Buffer<ArrayBufferLike> = Buffer.from('')
-		let source: Uint8Array | string = Buffer.from('')
+		let imgBuffer: Buffer = Buffer.from('')
+		let source: Uint8Array | string = new Uint8Array(Buffer.from(''))
 		const imgInfo = getImgInfo(filePath)
 
 		const cacheFileName = generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt])
@@ -260,7 +263,7 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 		if (bundler) {
 			source = (bundler[filePath] as OutputAsset).source
 		} else {
-			source = await fs.readFileSync(filePath)
+			source = new Uint8Array(await fs.readFileSync(filePath))
 		}
 
 		if (isUseCache) {
@@ -306,7 +309,7 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
 	const { oldFileName, newFileName, filePath } = imgInfo
 	imageNameMap.set(oldFileName, newFileName)
 	bundler[filePath].fileName = newFileName
-	;(bundler[filePath] as OutputAsset).source = imgBuffer
+	;(bundler[filePath] as OutputAsset).source = new Uint8Array(imgBuffer)
 }
 
 /**
@@ -461,7 +464,7 @@ const replaceImgName = (bundler: OutputBundle) => {
  * @returns replaced string
  */
 const replaceMultipleValues = (inputString: string, replacements: Map<string, string>) => {
-	if (!inputString) return;
+	if (!inputString) return
 	const regex = new RegExp(Array.from(replacements.keys()).join('|'), 'g')
 	const result = inputString.replace(regex, (match) => replacements.get(match))
 	return result
