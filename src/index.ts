@@ -98,15 +98,13 @@ const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) 
 }
 
 /**
- * Sharp.js only have jpeg() function,dont have jpg() function. So need to special process
+ * Set compress method map, convert from old ext to new ext, 
+ * not change compressMethodMap because the compress method is decided by newExt.
  */
 const setCompressMethodMap = () => {
 	const { convert } = resolvedConfig
 	convert.forEach((item) => {
 		const { from, to } = item
-		compressMethodMap.get(from) && compressMethodMap.delete(from)
-		// sharp.js only have .jpeg() function
-		to === 'jpg' ? compressMethodMap.set(from, 'jpeg') : compressMethodMap.set(from, to)
 		outputExtMap.set(from, to)
 	})
 }
@@ -322,9 +320,12 @@ const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
 	const publicDirFull = path.resolve(publicDir)
 	const oldFilePath = path.join(outputDir, path.relative(publicDirFull, imgInfo.oldFileName))
 	const newFilePath = path.join(outputDir, path.relative(publicDirFull, imgInfo.newFileName))
-	if (imgInfo.newExt !== imgInfo.oldExt) {
-		safetyWriteFile(newFilePath, imgBuffer)
+	if (recordsMap.has(imgInfo.oldFileName) && (
+		recordsMap.get(imgInfo.oldFileName).isCache ||
+		recordsMap.get(imgInfo.oldFileName).newSize < recordsMap.get(imgInfo.oldFileName).oldSize
+	)) {
 		fs.unlinkSync(oldFilePath)
+		safetyWriteFile(newFilePath, imgBuffer)
 	}
 	imageNameMap.set(imgInfo.oldFileName, imgInfo.newFileName)
 }
