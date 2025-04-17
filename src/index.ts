@@ -228,9 +228,9 @@ const generateCacheFileName = (imgInfo: ImgInfo, compressOption: SharpOption) =>
  * Get image info
  * @return {imgInfo}
  */
-const getImgInfo = (filePath: string) => {
+const getImgInfo = (filePath: string, allowChangeExt = true) => {
 	const { purePath: oldName, pureExt: oldExt } = getPathInfo(filePath)
-	const newExt = outputExtMap.get(oldExt)
+	const newExt = allowChangeExt ? outputExtMap.get(oldExt) : oldExt
 	const oldFileName = `${oldName.replace(publicDir + path.sep, '')}.${oldExt}`
 	const newFileName = `${oldName.replace(publicDir + path.sep, '')}.${newExt}`
 	return {
@@ -255,7 +255,7 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 	const handles = imgFiles.map(async (filePath: string) => {
 		let imgBuffer: Buffer = Buffer.from('')
 		let source: Uint8Array | string = new Uint8Array(Buffer.from(''))
-		const imgInfo = getImgInfo(filePath)
+		const imgInfo = getImgInfo(filePath, !!bundler)
 
 		const cacheFileName = generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt])
 		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(cacheFileName)
@@ -319,8 +319,9 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
  * @param {Buffer} imgBuffer
  */
 const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
-	const oldFilePath = path.join(outputDir, imgInfo.oldFileName)
-	const newFilePath = path.join(outputDir, imgInfo.newFileName)
+	const publicDirFull = path.resolve(publicDir)
+	const oldFilePath = path.join(outputDir, path.relative(publicDirFull, imgInfo.oldFileName))
+	const newFilePath = path.join(outputDir, path.relative(publicDirFull, imgInfo.newFileName))
 	if (imgInfo.newExt !== imgInfo.oldExt) {
 		safetyWriteFile(newFilePath, imgBuffer)
 		fs.unlinkSync(oldFilePath)
