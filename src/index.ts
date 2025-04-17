@@ -318,8 +318,9 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
  */
 const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
 	const publicDirFull = path.resolve(publicDir)
-	const oldFilePath = path.join(outputDir, path.relative(publicDirFull, imgInfo.oldFileName))
-	const newFilePath = path.join(outputDir, path.relative(publicDirFull, imgInfo.newFileName))
+	const isFileNameAbs = path.isAbsolute(imgInfo.oldFileName)
+	const oldFilePath = path.join(outputDir, isFileNameAbs ? path.relative(publicDirFull, imgInfo.oldFileName) : imgInfo.oldFileName)
+	const newFilePath = path.join(outputDir, isFileNameAbs ? path.relative(publicDirFull, imgInfo.newFileName) : imgInfo.newFileName)
 	if (recordsMap.has(imgInfo.oldFileName) && (
 		recordsMap.get(imgInfo.oldFileName).isCache ||
 		recordsMap.get(imgInfo.oldFileName).newSize < recordsMap.get(imgInfo.oldFileName).oldSize
