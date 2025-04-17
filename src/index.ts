@@ -98,15 +98,13 @@ const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) 
 }
 
 /**
- * Sharp.js only have jpeg() function,dont have jpg() function. So need to special process
+ * Set compress method map, convert from old ext to new ext, 
+ * not change compressMethodMap because the compress method is decided by newExt.
  */
 const setCompressMethodMap = () => {
 	const { convert } = resolvedConfig
 	convert.forEach((item) => {
 		const { from, to } = item
-		compressMethodMap.get(from) && compressMethodMap.delete(from)
-		// sharp.js only have .jpeg() function
-		to === 'jpg' ? compressMethodMap.set(from, 'jpeg') : compressMethodMap.set(from, to)
 		outputExtMap.set(from, to)
 	})
 }
@@ -228,9 +226,9 @@ const generateCacheFileName = (imgInfo: ImgInfo, compressOption: SharpOption) =>
  * Get image info
  * @return {imgInfo}
  */
-const getImgInfo = (filePath: string) => {
+const getImgInfo = (filePath: string, allowChangeExt = true) => {
 	const { purePath: oldName, pureExt: oldExt } = getPathInfo(filePath)
-	const newExt = outputExtMap.get(oldExt)
+	const newExt = allowChangeExt ? outputExtMap.get(oldExt) : oldExt
 	const oldFileName = `${oldName.replace(publicDir + path.sep, '')}.${oldExt}`
 	const newFileName = `${oldName.replace(publicDir + path.sep, '')}.${newExt}`
 	return {
@@ -255,7 +253,7 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 	const handles = imgFiles.map(async (filePath: string) => {
 		let imgBuffer: Buffer = Buffer.from('')
 		let source: Uint8Array | string = new Uint8Array(Buffer.from(''))
-		const imgInfo = getImgInfo(filePath)
+		const imgInfo = getImgInfo(filePath, !!bundler)
 
 		const cacheFileName = generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt])
 		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(cacheFileName)
@@ -319,11 +317,16 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
  * @param {Buffer} imgBuffer
  */
 const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
-	const oldFilePath = path.join(outputDir, imgInfo.oldFileName)
-	const newFilePath = path.join(outputDir, imgInfo.newFileName)
-	if (imgInfo.newExt !== imgInfo.oldExt) {
-		safetyWriteFile(newFilePath, imgBuffer)
+	const publicDirFull = path.resolve(publicDir)
+	const isFileNameAbs = path.isAbsolute(imgInfo.oldFileName)
+	const oldFilePath = path.join(outputDir, isFileNameAbs ? path.relative(publicDirFull, imgInfo.oldFileName) : imgInfo.oldFileName)
+	const newFilePath = path.join(outputDir, isFileNameAbs ? path.relative(publicDirFull, imgInfo.newFileName) : imgInfo.newFileName)
+	if (recordsMap.has(imgInfo.oldFileName) && (
+		recordsMap.get(imgInfo.oldFileName).isCache ||
+		recordsMap.get(imgInfo.oldFileName).newSize < recordsMap.get(imgInfo.oldFileName).oldSize
+	)) {
 		fs.unlinkSync(oldFilePath)
+		safetyWriteFile(newFilePath, imgBuffer)
 	}
 	imageNameMap.set(imgInfo.oldFileName, imgInfo.newFileName)
 }
