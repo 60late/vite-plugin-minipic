@@ -98,7 +98,7 @@ const handleResolveOptions = (userOptions: UserOptions, config: ResolvedConfig) 
 }
 
 /**
- * Set compress method map, convert from old ext to new ext, 
+ * Set compress method map, convert from old ext to new ext,
  * not change compressMethodMap because the compress method is decided by newExt.
  */
 const setCompressMethodMap = () => {
@@ -253,7 +253,8 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
 	const handles = imgFiles.map(async (filePath: string) => {
 		let imgBuffer: Buffer = Buffer.from('')
 		let source: Uint8Array | string = new Uint8Array(Buffer.from(''))
-		const imgInfo = getImgInfo(filePath, !!bundler)
+		// convert situation: 1. bundle process 2. public directory when `convertPublic` is true
+		const imgInfo = getImgInfo(filePath, !!(bundler || resolvedConfig.convertPublic))
 
 		const cacheFileName = generateCacheFileName(imgInfo, resolvedConfig.sharpOptions[imgInfo.newExt])
 		const isUseCache: boolean = resolvedConfig.cache && diskCache.has(cacheFileName)
@@ -319,12 +320,19 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
 const changePublicOutput = (imgInfo: ImgInfo, imgBuffer: Buffer) => {
 	const publicDirFull = path.resolve(publicDir)
 	const isFileNameAbs = path.isAbsolute(imgInfo.oldFileName)
-	const oldFilePath = path.join(outputDir, isFileNameAbs ? path.relative(publicDirFull, imgInfo.oldFileName) : imgInfo.oldFileName)
-	const newFilePath = path.join(outputDir, isFileNameAbs ? path.relative(publicDirFull, imgInfo.newFileName) : imgInfo.newFileName)
-	if (recordsMap.has(imgInfo.oldFileName) && (
-		recordsMap.get(imgInfo.oldFileName).isCache ||
-		recordsMap.get(imgInfo.oldFileName).newSize < recordsMap.get(imgInfo.oldFileName).oldSize
-	)) {
+	const oldFilePath = path.join(
+		outputDir,
+		isFileNameAbs ? path.relative(publicDirFull, imgInfo.oldFileName) : imgInfo.oldFileName
+	)
+	const newFilePath = path.join(
+		outputDir,
+		isFileNameAbs ? path.relative(publicDirFull, imgInfo.newFileName) : imgInfo.newFileName
+	)
+	if (
+		recordsMap.has(imgInfo.oldFileName) &&
+		(recordsMap.get(imgInfo.oldFileName).isCache ||
+			recordsMap.get(imgInfo.oldFileName).newSize < recordsMap.get(imgInfo.oldFileName).oldSize)
+	) {
 		fs.unlinkSync(oldFilePath)
 		safetyWriteFile(newFilePath, imgBuffer)
 	}

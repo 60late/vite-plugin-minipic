@@ -9,6 +9,8 @@ export interface UserOptions {
 	sharpOptions?: SharpOption
 	/** Change image type */
 	convert?: Convert[]
+	/** Apply convert in public directory? Default value: false */
+	convertPublic?: boolean
 	/** Use cache mode to improve compress speed.Default value:false */
 	cache?: boolean
 	/** Include files should be processed */

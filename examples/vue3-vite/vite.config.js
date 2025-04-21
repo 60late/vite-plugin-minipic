@@ -24,6 +24,7 @@ export default defineConfig({
 				{ from: 'png', to: 'webp' },
 				{ from: 'jpg', to: 'webp' }
 			],
+			convertPublic: false,
 			cache: false,
 			exclude: ['pic-exclude.png'],
 			include: []
