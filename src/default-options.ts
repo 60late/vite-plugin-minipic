@@ -32,5 +32,6 @@ export const defaultOptions: UserOptions = {
 	convertPublic: false,
 	cache: true,
 	include: [],
-	exclude: []
+	exclude: [],
+	limitInputPixels: true
 }

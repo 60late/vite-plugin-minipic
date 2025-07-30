@@ -17,6 +17,8 @@ export interface UserOptions {
 	include?: string[] | string
 	/** Exclude files should not be processed */
 	exclude?: string[] | string
+	/** Limit gif total pixels. Default value: true */
+	limitInputPixels?: boolean
 }
 
 export interface Convert {

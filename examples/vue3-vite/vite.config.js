@@ -27,7 +27,8 @@ export default defineConfig({
 			convertPublic: false,
 			cache: false,
 			exclude: ['pic-exclude.png'],
-			include: []
+			include: [],
+			limitInputPixels: true
 		})
 	],
 	resolve: {

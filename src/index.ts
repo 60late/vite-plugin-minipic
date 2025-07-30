@@ -291,11 +291,7 @@ const handleGenerateImgFiles = async (imgFiles: string[], bundler?: OutputBundle
  * @return {*} config
  */
 const handleSharpConfig = ({ ext }: SharpConfig) => {
-	let config = {}
-	if (ext === 'gif') {
-		config = { animated: true }
-	}
-	return config
+	return ext === 'gif' ? { animated: true, limitInputPixels: resolvedConfig.limitInputPixels } : {}
 }
 
 /**
@@ -349,7 +345,13 @@ const generateFileByCompress = async (imgInfo: ImgInfo, source: Uint8Array | str
 	const { oldFileName, newFileName, newExt } = imgInfo
 	const sharpConfig = handleSharpConfig({ ext: newExt })
 	const compressOption = resolvedConfig.sharpOptions[newExt]
-	const imgBuffer: Buffer = await sharp(source, sharpConfig)[compressMethodMap.get(newExt)](compressOption).toBuffer()
+	let imgBuffer: Buffer
+	try {
+		imgBuffer = await sharp(source, sharpConfig)[compressMethodMap.get(newExt)](compressOption).toBuffer()
+	} catch (err) {
+		logger(chalk.yellow(`[vite-plugin-minipic] Skip error img: ${imgInfo.filePath}. Error info: ${err.message}`))
+		return
+	}
 	const oldSize = (source as Uint8Array).byteLength
 	const newSize = imgBuffer.byteLength
 	const compressRatio = (((oldSize - newSize) / oldSize) * 100).toFixed(2)
