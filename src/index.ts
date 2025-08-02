@@ -227,6 +227,7 @@ const generateCacheFileName = (imgInfo: ImgInfo, compressOption: SharpOption) =>
  * @return {imgInfo}
  */
 const getImgInfo = (filePath: string, allowChangeExt = true) => {
+	filePath = filePath.startsWith(curStep) ? filePath.split(path.sep).slice(1).join(path.sep) : filePath
 	const { purePath: oldName, pureExt: oldExt } = getPathInfo(filePath)
 	const newExt = allowChangeExt ? outputExtMap.get(oldExt) : oldExt
 	const oldFileName = `${oldName.replace(publicDir + path.sep, '')}.${oldExt}`
@@ -304,7 +305,7 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
 	const { oldFileName, newFileName, filePath } = imgInfo
 	imageNameMap.set(oldFileName, newFileName)
 	bundler[filePath].fileName = newFileName
-	;(bundler[filePath] as OutputAsset).source = new Uint8Array(imgBuffer)
+		; (bundler[filePath] as OutputAsset).source = new Uint8Array(imgBuffer)
 }
 
 /**
