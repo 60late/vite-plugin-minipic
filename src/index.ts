@@ -305,7 +305,7 @@ const changeBundleOutput = (imgInfo: ImgInfo, imgBuffer: Buffer, bundler: Output
 	const { oldFileName, newFileName, filePath } = imgInfo
 	imageNameMap.set(oldFileName, newFileName)
 	bundler[filePath].fileName = newFileName
-		; (bundler[filePath] as OutputAsset).source = new Uint8Array(imgBuffer)
+	;(bundler[filePath] as OutputAsset).source = new Uint8Array(imgBuffer)
 }
 
 /**
