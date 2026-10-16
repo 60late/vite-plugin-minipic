@@ -1,5 +1,7 @@
 # vite-plugin-minipic
 
+> 🌐 **我知道你一定有在线压缩图片的需求，来试试作者的免费在线图片压缩网站 [MiniPicWeb](https://minipic.60late.com/)**
+
 **中文** | [English](README.md)  
 vite图片压缩插件，使用简单，重要的是它真的很快 🚀🚀🚀🚀！!  
 基于[sharp](https://github.com/lovell/sharp)开发  

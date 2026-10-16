@@ -1,5 +1,7 @@
 # vite-plugin-minipic
 
+> 🌐 **Need to compress images online? Try [MiniPicWeb](https://minipic.60late.com/), a free online image compression tool from the author of this plugin.**
+
 **English** | [中文](README.CN.md)
 
 vite-plugin-minipic is a helpful tool to compress images in morden vite project.  
